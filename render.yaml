@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: cv-agent
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false   # You'll enter this manually in Render dashboard
+    disk:
+      name: docs-store
+      mountPath: /opt/render/project/src/docs-store
+      sizeGB: 1
