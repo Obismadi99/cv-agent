@@ -7,196 +7,165 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #f8f7f5;
-    --surface: #ffffff;
-    --surface2: #f2f1ef;
-    --border: rgba(0,0,0,0.1);
-    --border2: rgba(0,0,0,0.18);
-    --text: #1a1a1a;
-    --text2: #6b6b6b;
-    --text3: #999;
-    --accent: #1a1a1a;
-    --accent-bg: #f0f0f0;
-    --info: #1a6fdb;
-    --info-bg: #eef4fd;
-    --success: #187a4a;
-    --success-bg: #edf7f2;
-    --warn: #a35c00;
-    --warn-bg: #fdf4e7;
-    --radius: 8px;
-    --radius-lg: 12px;
+    --bg: #f8f7f5; --surface: #fff; --surface2: #f2f1ef;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+    --text: #1a1a1a; --text2: #6b6b6b; --text3: #aaa;
+    --info: #1a6fdb; --info-bg: #eef4fd;
+    --success: #187a4a; --success-bg: #edf7f2;
+    --warn: #a35c00; --warn-bg: #fdf4e7;
+    --danger-bg: #fde8e8; --danger: #c0392b;
+    --r: 8px; --r-lg: 12px;
   }
+  html, body { height: 100%; overflow: hidden; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
 
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
-
-  /* ── HEADER ── */
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.5rem; height: 52px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  /* HEADER */
+  header { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   header h1 { font-size: 15px; font-weight: 600; }
-  .tabs { display: flex; gap: 4px; margin-left: auto; }
-  .tab { padding: 6px 14px; border-radius: var(--radius); font-size: 13px; cursor: pointer; color: var(--text2); border: none; background: transparent; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
+  .tabs { margin-left: auto; display: flex; gap: 4px; }
+  .tab { padding: 6px 14px; border-radius: var(--r); font-size: 13px; cursor: pointer; color: var(--text2); border: none; background: none; display: flex; align-items: center; gap: 6px; }
   .tab:hover { background: var(--surface2); color: var(--text); }
   .tab.active { background: var(--surface2); color: var(--text); font-weight: 500; }
 
-  /* ── LAYOUT ── */
-  .app-body { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 52px); }
+  /* BODY */
+  .app-body { flex: 1; overflow: hidden; display: flex; }
+  .view { display: none; flex: 1; overflow: hidden; }
+  .view.active { display: flex; }
 
-  /* ── DOCS TAB ── */
-  #view-docs { display: flex; flex: 1; overflow: hidden; }
-  #view-docs.hidden, #view-agent.hidden { display: none; }
+  /* ── DOCS VIEW ── */
+  #view-docs { flex-direction: row; }
 
-  .doc-sidebar { width: 240px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-  .sidebar-header { padding: 12px 12px 8px; border-bottom: 1px solid var(--border); }
-  .sidebar-header span { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
-  .doc-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
-  .doc-list-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; font-size: 13px; color: var(--text); transition: background 0.1s; border: 1px solid transparent; }
-  .doc-list-item:hover { background: var(--surface2); }
-  .doc-list-item.active { background: var(--info-bg); border-color: rgba(26,111,219,0.2); color: var(--info); }
-  .doc-list-item .doc-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-  .doc-list-item .doc-chars { font-size: 11px; color: var(--text3); }
-  .doc-delete-btn { opacity: 0; font-size: 15px; color: var(--text3); cursor: pointer; padding: 2px; border: none; background: none; border-radius: 4px; }
-  .doc-list-item:hover .doc-delete-btn { opacity: 1; }
-  .doc-delete-btn:hover { color: #c0392b; background: #fde8e8; }
+  .sidebar { width: 230px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .sidebar-top { padding: 10px 10px 6px; border-bottom: 1px solid var(--border); }
+  .sidebar-top span { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+  .doc-list { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .doc-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r); cursor: pointer; border: 1px solid transparent; transition: background 0.1s; }
+  .doc-item:hover { background: var(--surface2); }
+  .doc-item.active { background: var(--info-bg); border-color: rgba(26,111,219,0.2); }
+  .doc-item .name { flex: 1; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .doc-item.active .name { color: var(--info); }
+  .doc-item i.ti-file-text { font-size: 15px; color: var(--text3); flex-shrink: 0; }
+  .doc-item.active i.ti-file-text { color: var(--info); }
+  .doc-item .chars { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+  .del-btn { opacity: 0; background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 14px; color: var(--text3); flex-shrink: 0; }
+  .doc-item:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: var(--danger); background: var(--danger-bg); }
+  .sidebar-bottom { padding: 8px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+  .new-input { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); }
+  .new-input:focus { outline: none; border-color: var(--info); }
+  .add-btn { padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); cursor: pointer; color: var(--text2); font-size: 15px; }
+  .add-btn:hover { background: var(--surface); color: var(--text); }
 
-  .sidebar-footer { padding: 8px; border-top: 1px solid var(--border); }
-  .new-doc-row { display: flex; gap: 6px; }
-  .new-doc-input { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface2); color: var(--text); }
-  .new-doc-input:focus { outline: none; border-color: var(--info); }
-  .icon-btn { padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface2); cursor: pointer; font-size: 15px; color: var(--text2); transition: all 0.1s; }
-  .icon-btn:hover { background: var(--surface); color: var(--text); }
+  /* EDITOR */
+  .editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--surface); }
+  .editor-head { height: 46px; border-bottom: 1px solid var(--border); padding: 0 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .editor-head i { font-size: 15px; color: var(--text3); }
+  .title-input { flex: 1; border: none; background: none; font-size: 14px; font-weight: 600; color: var(--text); outline: none; }
+  .saved { font-size: 12px; color: var(--success); background: var(--success-bg); padding: 3px 10px; border-radius: 99px; opacity: 0; transition: opacity 0.3s; }
+  .saved.show { opacity: 1; }
+  .editor textarea { flex: 1; border: none; background: var(--surface); padding: 1.25rem 1.5rem; font-size: 13.5px; line-height: 1.75; color: var(--text); resize: none; outline: none; font-family: 'Menlo', 'Consolas', monospace; overflow-y: auto; }
+  .empty-editor { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text3); }
+  .empty-editor i { font-size: 36px; }
+  .empty-editor p { font-size: 14px; }
 
-  .doc-editor { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .editor-header { padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 10px; }
-  .editor-title-input { flex: 1; border: none; background: transparent; font-size: 15px; font-weight: 600; color: var(--text); outline: none; }
-  .saved-badge { font-size: 12px; color: var(--success); background: var(--success-bg); padding: 3px 10px; border-radius: 99px; opacity: 0; transition: opacity 0.3s; }
-  .saved-badge.show { opacity: 1; }
-  .editor-body { flex: 1; overflow: hidden; }
-  .doc-textarea { width: 100%; height: 100%; border: none; background: var(--surface); padding: 1.5rem; font-size: 13.5px; line-height: 1.75; color: var(--text); resize: none; outline: none; font-family: 'Menlo', 'Consolas', monospace; }
-  .doc-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text2); }
-  .doc-empty i { font-size: 36px; opacity: 0.3; }
-  .doc-empty p { font-size: 14px; }
+  /* ── AGENT VIEW ── */
+  #view-agent { flex-direction: column; }
+  .agent-top { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; flex-shrink: 0; }
+  .agent-top label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px; }
+  .job-ta { width: 100%; height: 100px; border: 1px solid var(--border2); border-radius: var(--r-lg); padding: 10px 12px; font-size: 13.5px; line-height: 1.6; resize: none; background: var(--surface2); color: var(--text); font-family: inherit; }
+  .job-ta:focus { outline: none; border-color: var(--info); }
+  .gen-btn { margin-top: 10px; padding: 8px 18px; background: var(--text); color: #fff; border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .gen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* ── AGENT TAB ── */
-  #view-agent { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-  .agent-input-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; flex-shrink: 0; }
-  .agent-input-bar label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 8px; }
-  .job-textarea { width: 100%; height: 110px; border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 12px 14px; font-size: 13.5px; line-height: 1.65; resize: none; background: var(--surface2); color: var(--text); font-family: inherit; }
-  .job-textarea:focus { outline: none; border-color: var(--info); }
-  .run-btn { margin-top: 10px; padding: 9px 20px; background: var(--text); color: var(--surface); border: none; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.15s; }
-  .run-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .run-btn:not(:disabled):hover { opacity: 0.85; }
-
-  .agent-body { flex: 1; display: flex; overflow: hidden; }
-  .agent-log-panel { width: 360px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
+  .agent-main { flex: 1; display: flex; overflow: hidden; }
+  .log-panel { width: 340px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 10px; background: var(--bg); }
   .log-step { display: flex; gap: 10px; }
-  .log-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; margin-top: 2px; }
-  .log-icon.tool { background: var(--warn-bg); color: var(--warn); }
-  .log-icon.agent { background: var(--info-bg); color: var(--info); }
-  .log-icon.result { background: var(--success-bg); color: var(--success); }
-  .log-icon.error { background: #fde8e8; color: #c0392b; }
-  .log-body { flex: 1; min-width: 0; }
-  .log-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .log-text { font-size: 12.5px; line-height: 1.55; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; word-break: break-word; white-space: pre-wrap; }
+  .log-ico { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; margin-top: 2px; }
+  .log-ico.tool { background: var(--warn-bg); color: var(--warn); }
+  .log-ico.agent { background: var(--info-bg); color: var(--info); }
+  .log-ico.result { background: var(--success-bg); color: var(--success); }
+  .log-ico.error { background: var(--danger-bg); color: var(--danger); }
+  .log-body .lbl { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .log-body .msg { font-size: 12px; line-height: 1.5; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 7px 10px; white-space: pre-wrap; word-break: break-word; }
+  .log-empty { text-align: center; color: var(--text3); padding: 2rem 1rem; font-size: 13px; }
+  .log-empty i { font-size: 28px; display: block; margin-bottom: 8px; opacity: 0.4; }
 
-  .cv-output-panel { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
-  .cv-output-header { padding: 12px 1.5rem; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .cv-output-header span { font-size: 13px; font-weight: 600; color: var(--text2); }
-  .copy-btn { margin-left: auto; padding: 5px 12px; font-size: 12px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--surface2); cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
+  .cv-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .cv-head { height: 46px; border-bottom: 1px solid var(--border); padding: 0 1.25rem; background: var(--surface); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .cv-head span { font-size: 13px; font-weight: 600; color: var(--text2); }
+  .copy-btn { margin-left: auto; padding: 5px 12px; font-size: 12px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); cursor: pointer; color: var(--text2); display: none; align-items: center; gap: 6px; }
   .copy-btn:hover { background: var(--surface); color: var(--text); }
-  .cv-output-body { flex: 1; padding: 1.5rem 2rem; }
-  .cv-text { font-size: 13.5px; line-height: 1.8; color: var(--text); white-space: pre-wrap; font-family: 'Georgia', serif; }
-  .cv-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; height: 100%; color: var(--text2); }
-  .cv-placeholder i { font-size: 40px; opacity: 0.25; }
+  .cv-body { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+  .cv-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; color: var(--text3); }
+  .cv-placeholder i { font-size: 36px; opacity: 0.3; }
   .cv-placeholder p { font-size: 14px; }
+  .cv-text { display: none; font-size: 13.5px; line-height: 1.85; color: var(--text); white-space: pre-wrap; font-family: Georgia, serif; }
 
-  .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+  .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .log-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 2rem 1rem; color: var(--text3); text-align: center; }
-  .log-empty i { font-size: 28px; opacity: 0.3; }
-  .log-empty p { font-size: 13px; line-height: 1.5; }
 </style>
 </head>
 <body>
 
 <header>
-  <i class="ti ti-file-cv" style="font-size:20px; color:#888;"></i>
+  <i class="ti ti-file-cv" style="font-size:20px;color:#aaa;"></i>
   <h1>CV Agent</h1>
   <div class="tabs">
-    <button class="tab active" id="tab-docs" onclick="switchTab('docs')">
-      <i class="ti ti-files"></i> My Docs
-    </button>
-    <button class="tab" id="tab-agent" onclick="switchTab('agent')">
-      <i class="ti ti-robot"></i> Generate CV
-    </button>
+    <button class="tab active" id="tab-docs" onclick="switchTab('docs')"><i class="ti ti-files"></i> My Docs</button>
+    <button class="tab" id="tab-agent" onclick="switchTab('agent')"><i class="ti ti-robot"></i> Generate CV</button>
   </div>
 </header>
 
 <div class="app-body">
 
-  <!-- ── DOCS VIEW ── -->
-  <div id="view-docs">
-    <div class="doc-sidebar">
-      <div class="sidebar-header"><span>Documents</span></div>
+  <!-- DOCS VIEW -->
+  <div class="view active" id="view-docs">
+    <div class="sidebar">
+      <div class="sidebar-top"><span>Documents</span></div>
       <div class="doc-list" id="doc-list"></div>
-      <div class="sidebar-footer">
-        <div class="new-doc-row">
-          <input class="new-doc-input" id="new-doc-name" placeholder="New doc name…" onkeydown="if(event.key==='Enter')addDoc()" />
-          <button class="icon-btn" onclick="addDoc()" title="Add document"><i class="ti ti-plus"></i></button>
-        </div>
+      <div class="sidebar-bottom">
+        <input class="new-input" id="new-name" placeholder="New doc name…" onkeydown="if(event.key==='Enter')addDoc()">
+        <button class="add-btn" onclick="addDoc()" title="Add"><i class="ti ti-plus"></i></button>
       </div>
     </div>
-    <div class="doc-editor" id="doc-editor">
-      <div class="doc-empty" id="doc-empty">
+    <div class="editor" id="editor">
+      <div class="empty-editor" id="empty-editor">
         <i class="ti ti-file-text"></i>
         <p>Select a document to edit</p>
       </div>
-      <div id="editor-panel" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
-        <div class="editor-header">
-          <i class="ti ti-file-text" style="font-size:16px; color:#888;"></i>
-          <input class="editor-title-input" id="editor-title" placeholder="Document name" oninput="renameDoc(this.value)" />
-          <span class="saved-badge" id="saved-badge">Saved</span>
+      <div id="editor-inner" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+        <div class="editor-head">
+          <i class="ti ti-file-text"></i>
+          <input class="title-input" id="title-input" placeholder="Document name" oninput="onTitleChange(this.value)">
+          <span class="saved" id="saved-badge">Saved</span>
         </div>
-        <div class="editor-body">
-          <textarea class="doc-textarea" id="doc-textarea" oninput="saveDoc(this.value)"
-            placeholder="Paste your CV, skills, projects, or any relevant info here…"></textarea>
-        </div>
+        <textarea id="doc-ta" oninput="onContentChange(this.value)"
+          placeholder="Paste your CV, skills, experience, projects here…"></textarea>
       </div>
     </div>
   </div>
 
-  <!-- ── AGENT VIEW ── -->
-  <div id="view-agent" class="hidden">
-    <div class="agent-input-bar">
-      <label>Job description</label>
-      <textarea class="job-textarea" id="job-desc"
-        placeholder="Paste the job description here. The agent will read your documents and write a tailored CV…"></textarea>
-      <button class="run-btn" id="run-btn" onclick="runAgent()">
-        <i class="ti ti-sparkles"></i> Generate tailored CV
-      </button>
+  <!-- AGENT VIEW -->
+  <div class="view" id="view-agent">
+    <div class="agent-top">
+      <label>Job Description</label>
+      <textarea class="job-ta" id="job-ta" placeholder="Paste the job description here. The agent will read your documents and write a tailored CV…"></textarea>
+      <button class="gen-btn" id="gen-btn" onclick="runAgent()"><i class="ti ti-sparkles"></i> Generate tailored CV</button>
     </div>
-    <div class="agent-body">
-      <div class="agent-log-panel" id="agent-log">
-        <div class="log-empty" id="log-empty">
-          <i class="ti ti-activity"></i>
-          <p>Agent steps will appear here as it reads your documents</p>
-        </div>
+    <div class="agent-main">
+      <div class="log-panel" id="log-panel">
+        <div class="log-empty"><i class="ti ti-activity"></i>Agent steps appear here</div>
       </div>
-      <div class="cv-output-panel">
-        <div class="cv-output-header">
-          <i class="ti ti-file-check" style="font-size:16px; color:#888;"></i>
+      <div class="cv-panel">
+        <div class="cv-head">
+          <i class="ti ti-file-check" style="font-size:16px;color:#aaa;"></i>
           <span>Generated CV</span>
-          <button class="copy-btn" id="copy-btn" onclick="copyCV()" style="display:none;">
-            <i class="ti ti-copy"></i> Copy
-          </button>
+          <button class="copy-btn" id="copy-btn" onclick="copyCV()"><i class="ti ti-copy"></i> Copy</button>
         </div>
-        <div class="cv-output-body">
-          <div class="cv-placeholder" id="cv-placeholder">
-            <i class="ti ti-file-description"></i>
-            <p>Your tailored CV will appear here</p>
-          </div>
-          <div class="cv-text" id="cv-text" style="display:none;"></div>
+        <div class="cv-body">
+          <div class="cv-placeholder" id="cv-placeholder"><i class="ti ti-file-description"></i><p>Your tailored CV will appear here</p></div>
+          <div class="cv-text" id="cv-text"></div>
         </div>
       </div>
     </div>
@@ -205,253 +174,251 @@
 </div>
 
 <script>
-let currentDoc = null;
+// ── STATE ──
+let currentDoc = null;  // name of currently open doc
 let saveTimer = null;
-let originalName = null;
+let renameTimer = null;
+let pendingContent = null;  // unsaved content buffer
 
-// ── TAB SWITCHING ──
-function switchTab(tab) {
-  ['docs','agent'].forEach(t => {
-    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
-    document.getElementById('view-'+t).classList.toggle('hidden', t!==tab);
+// ── TABS ──
+function switchTab(t) {
+  ['docs','agent'].forEach(id => {
+    document.getElementById('tab-'+id).classList.toggle('active', id===t);
+    document.getElementById('view-'+id).classList.toggle('active', id===t);
   });
 }
 
-// ── DOCS ──
+// ── LOAD & RENDER DOC LIST ──
 async function loadDocs() {
-  const res = await fetch('/api/docs');
-  const docs = await res.json();
-  renderDocList(docs);
+  try {
+    const res = await fetch('/api/docs');
+    const docs = await res.json();
+    const list = document.getElementById('doc-list');
+    list.innerHTML = '';
+    if (docs.length === 0) {
+      list.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center;">No documents yet</div>';
+      return;
+    }
+    docs.forEach(doc => {
+      const el = document.createElement('div');
+      el.className = 'doc-item' + (doc.name === currentDoc ? ' active' : '');
+      el.dataset.name = doc.name;
+      el.innerHTML =
+        '<i class="ti ti-file-text"></i>' +
+        '<span class="name">' + esc(doc.name) + '</span>' +
+        '<span class="chars">' + doc.chars + 'c</span>' +
+        '<button class="del-btn" title="Delete"><i class="ti ti-trash"></i></button>';
+      el.querySelector('.del-btn').addEventListener('click', e => { e.stopPropagation(); deleteDoc(doc.name); });
+      el.addEventListener('click', () => selectDoc(doc.name));
+      list.appendChild(el);
+    });
+  } catch(e) { console.error('loadDocs error', e); }
 }
 
-function renderDocList(docs) {
-  const el = document.getElementById('doc-list');
-  el.innerHTML = '';
-  docs.forEach(doc => {
-    const item = document.createElement('div');
-    item.className = 'doc-list-item' + (currentDoc === doc.name ? ' active' : '');
-    item.dataset.name = doc.name;
-    item.innerHTML = `
-      <i class="ti ti-file-text" style="font-size:15px; flex-shrink:0;"></i>
-      <span class="doc-name">${esc(doc.name)}</span>
-      <span class="doc-chars">${doc.chars}c</span>
-      <button class="doc-delete-btn" onclick="deleteDoc(event,'${esc(doc.name)}')" title="Delete"><i class="ti ti-trash"></i></button>
-    `;
-    item.onclick = (e) => { if (!e.target.closest('.doc-delete-btn')) selectDoc(doc.name); };
-    el.appendChild(item);
-  });
-}
-
+// ── SELECT DOC ──
 async function selectDoc(name) {
-  currentDoc = name;
-  originalName = name;
-  const res = await fetch('/api/docs/' + encodeURIComponent(name));
-  const doc = await res.json();
-  document.getElementById('doc-empty').style.display = 'none';
-  const panel = document.getElementById('editor-panel');
-  panel.style.display = 'flex';
-  document.getElementById('editor-title').value = doc.name;
-  document.getElementById('doc-textarea').value = doc.content;
-  loadDocs();
+  try {
+    const res = await fetch('/api/docs/' + encodeURIComponent(name));
+    if (!res.ok) throw new Error('not found');
+    const doc = await res.json();
+    currentDoc = name;
+    pendingContent = null;
+
+    // Show editor
+    document.getElementById('empty-editor').style.display = 'none';
+    const inner = document.getElementById('editor-inner');
+    inner.style.display = 'flex';
+
+    document.getElementById('title-input').value = doc.name;
+    document.getElementById('doc-ta').value = doc.content;
+
+    // Re-render list to update active state
+    loadDocs();
+  } catch(e) { console.error('selectDoc error', e); }
 }
 
-function saveDoc(content) {
-  if (!currentDoc) return;
+// ── TITLE CHANGE (rename) ──
+function onTitleChange(val) {
+  clearTimeout(renameTimer);
+  renameTimer = setTimeout(async () => {
+    if (!currentDoc || !val.trim()) return;
+    const newName = val.trim();
+    if (newName === currentDoc) return;
+    try {
+      const res = await fetch('/api/docs/' + encodeURIComponent(currentDoc) + '/rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newName })
+      });
+      if (res.ok) {
+        currentDoc = newName;
+        flashSaved();
+        loadDocs();
+      }
+    } catch(e) { console.error('rename error', e); }
+  }, 800);
+}
+
+// ── CONTENT CHANGE (save) ──
+function onContentChange(val) {
+  pendingContent = val;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
-    await fetch('/api/docs/' + encodeURIComponent(currentDoc), {
-      method: 'PUT', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ content })
-    });
-    showSaved();
-    loadDocs();
-  }, 500);
+    if (!currentDoc) return;
+    try {
+      await fetch('/api/docs/' + encodeURIComponent(currentDoc), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: pendingContent })
+      });
+      flashSaved();
+      loadDocs();
+    } catch(e) { console.error('save error', e); }
+  }, 600);
 }
 
-async function renameDoc(newName) {
-  if (!currentDoc || !newName.trim()) return;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    await fetch('/api/docs/' + encodeURIComponent(currentDoc) + '/rename', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ newName: newName.trim() })
-    });
-    currentDoc = newName.trim();
-    showSaved();
-    loadDocs();
-  }, 700);
-}
-
+// ── ADD DOC ──
 async function addDoc() {
-  const input = document.getElementById('new-doc-name');
+  const input = document.getElementById('new-name');
   const name = input.value.trim() || 'Untitled';
-  await fetch('/api/docs/' + encodeURIComponent(name), {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ content: '' })
-  });
   input.value = '';
-  await loadDocs();
-  selectDoc(name);
+  try {
+    await fetch('/api/docs/' + encodeURIComponent(name), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: '' })
+    });
+    await loadDocs();
+    selectDoc(name);
+  } catch(e) { console.error('addDoc error', e); }
 }
 
-async function deleteDoc(e, name) {
-  e.stopPropagation();
-  if (!confirm(`Delete "${name}"?`)) return;
-  await fetch('/api/docs/' + encodeURIComponent(name), { method: 'DELETE' });
-  if (currentDoc === name) {
-    currentDoc = null;
-    document.getElementById('editor-panel').style.display = 'none';
-    document.getElementById('doc-empty').style.display = 'flex';
-  }
-  loadDocs();
+// ── DELETE DOC ──
+async function deleteDoc(name) {
+  if (!confirm('Delete "' + name + '"?')) return;
+  try {
+    await fetch('/api/docs/' + encodeURIComponent(name), { method: 'DELETE' });
+    if (currentDoc === name) {
+      currentDoc = null;
+      document.getElementById('editor-inner').style.display = 'none';
+      document.getElementById('empty-editor').style.display = 'flex';
+    }
+    loadDocs();
+  } catch(e) { console.error('deleteDoc error', e); }
 }
 
-function showSaved() {
+function flashSaved() {
   const b = document.getElementById('saved-badge');
   b.classList.add('show');
-  setTimeout(() => b.classList.remove('show'), 1500);
+  clearTimeout(b._t);
+  b._t = setTimeout(() => b.classList.remove('show'), 1500);
 }
 
 // ── AGENT ──
-const SYSTEM_PROMPT = `You are a professional CV writer and career coach. Your job is to create highly tailored CVs.
+const SYS = `You are a professional CV writer. Create highly tailored CVs for specific job descriptions.
 
-Process:
+Steps:
 1. Call list_documents to see what's available
-2. Call read_document for EACH document to gather the user's full information
-3. Analyse the job description — key skills, keywords, tone, seniority level
-4. Write a polished, professional CV that highlights the most relevant experience
+2. Call read_document for EACH document to gather all user information
+3. Analyse the job description carefully — skills, keywords, seniority, tone
+4. Write a polished CV highlighting the most relevant experience
 5. Mirror language and keywords from the job description where truthful
-6. Use clear sections: Summary, Experience, Skills, Education, Projects (as appropriate)
-7. Quantify achievements where possible
+6. Use clear sections: Summary, Experience, Skills, Education, Projects
+7. Quantify achievements wherever possible
 
-Read ALL documents before writing. Be thorough and specific.`;
+Read ALL documents before writing.`;
 
 const TOOLS = [
-  {
-    name: "list_documents",
-    description: "Returns the names of all documents in the user's knowledge base. Call this first.",
-    input_schema: { type: "object", properties: {}, required: [] }
-  },
-  {
-    name: "read_document",
-    description: "Reads the full content of a document by its exact name.",
-    input_schema: {
-      type: "object",
-      properties: {
-        document_name: { type: "string", description: "Exact document name as returned by list_documents" }
-      },
-      required: ["document_name"]
-    }
-  }
+  { name: 'list_documents', description: 'Lists all documents in the knowledge base. Call first.', input_schema: { type: 'object', properties: {}, required: [] } },
+  { name: 'read_document', description: 'Reads a document by exact name.', input_schema: { type: 'object', properties: { document_name: { type: 'string' } }, required: ['document_name'] } }
 ];
 
 async function runAgent() {
-  const jobDesc = document.getElementById('job-desc').value.trim();
-  if (!jobDesc) { alert('Please paste a job description first.'); return; }
+  const jd = document.getElementById('job-ta').value.trim();
+  if (!jd) { alert('Please paste a job description first.'); return; }
 
-  const btn = document.getElementById('run-btn');
+  const btn = document.getElementById('gen-btn');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Agent working…';
+  btn.innerHTML = '<div class="spinner"></div> Working…';
 
-  // Reset UI
-  const logEl = document.getElementById('agent-log');
-  logEl.innerHTML = '';
+  document.getElementById('log-panel').innerHTML = '';
   document.getElementById('cv-placeholder').style.display = 'flex';
   document.getElementById('cv-text').style.display = 'none';
   document.getElementById('copy-btn').style.display = 'none';
 
-  const messages = [{
-    role: 'user',
-    content: `Please create a tailored CV for this job description:\n\n${jobDesc}\n\nFirst check my documents, read them all, then write the CV.`
-  }];
+  const messages = [{ role: 'user', content: 'Create a tailored CV for this job:\n\n' + jd + '\n\nRead all my documents first, then write the CV.' }];
 
   try {
-    let iterations = 0;
-    while (iterations++ < 12) {
+    for (let i = 0; i < 12; i++) {
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          system: SYSTEM_PROMPT,
-          tools: TOOLS,
-          messages
-        })
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, system: SYS, tools: TOOLS, messages })
       });
-
       const data = await res.json();
-      if (data.error) { addLog('error', 'Error', data.error.message || JSON.stringify(data.error)); break; }
+      if (data.error) { log('error', 'API Error', data.error.message || JSON.stringify(data.error)); break; }
 
       messages.push({ role: 'assistant', content: data.content });
 
       const toolResults = [];
       let hasTools = false;
 
-      for (const block of data.content) {
-        if (block.type === 'text' && block.text.trim()) {
+      for (const blk of data.content) {
+        if (blk.type === 'text' && blk.text.trim()) {
           if (data.stop_reason === 'end_turn' && !data.content.some(b => b.type === 'tool_use')) {
-            showCV(block.text);
+            showCV(blk.text);
           } else {
-            addLog('agent', 'Thinking', block.text);
+            log('agent', 'Thinking', blk.text);
           }
         }
-        if (block.type === 'tool_use') {
+        if (blk.type === 'tool_use') {
           hasTools = true;
           let result = '';
-          if (block.name === 'list_documents') {
-            addLog('tool', 'Tool → list_documents', 'Fetching document list…');
+          if (blk.name === 'list_documents') {
+            log('tool', 'list_documents', 'Fetching document list…');
             const r = await fetch('/api/docs');
             const docs = await r.json();
-            result = docs.length
-              ? `Available documents (${docs.length}):\n${docs.map(d => `- ${d.name}`).join('\n')}`
-              : 'No documents found.';
-            addLog('result', 'Documents found', result);
-          } else if (block.name === 'read_document') {
-            const name = block.input.document_name;
-            addLog('tool', `Tool → read_document`, `Reading: "${name}"`);
+            result = docs.length ? 'Documents (' + docs.length + '):\n' + docs.map(d => '- ' + d.name).join('\n') : 'No documents found.';
+            log('result', 'Found', result);
+          } else if (blk.name === 'read_document') {
+            const name = blk.input.document_name;
+            log('tool', 'read_document', 'Reading: "' + name + '"');
             const r = await fetch('/api/docs/' + encodeURIComponent(name));
             if (r.ok) {
               const doc = await r.json();
               result = doc.content;
-              addLog('result', `"${name}" loaded`, doc.content.slice(0, 220) + (doc.content.length > 220 ? '…' : ''));
+              log('result', '"' + name + '" loaded', doc.content.slice(0, 200) + (doc.content.length > 200 ? '…' : ''));
             } else {
-              result = `Document "${name}" not found.`;
-              addLog('error', 'Not found', result);
+              result = 'Document "' + name + '" not found.';
+              log('error', 'Not found', result);
             }
           }
-          toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: result });
+          toolResults.push({ type: 'tool_result', tool_use_id: blk.id, content: result });
         }
       }
 
       if (hasTools) {
         messages.push({ role: 'user', content: toolResults });
       } else {
-        const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
-        if (text) showCV(text);
+        const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+        if (txt) showCV(txt);
         break;
       }
     }
-  } catch(e) {
-    addLog('error', 'Error', String(e));
-  }
+  } catch(e) { log('error', 'Error', String(e)); }
 
   btn.disabled = false;
   btn.innerHTML = '<i class="ti ti-sparkles"></i> Generate tailored CV';
 }
 
-function addLog(type, label, text) {
-  document.getElementById('log-empty')?.remove();
+function log(type, label, text) {
+  const panel = document.getElementById('log-panel');
   const icons = { tool: 'ti-tool', agent: 'ti-robot', result: 'ti-check', error: 'ti-alert-circle' };
   const div = document.createElement('div');
   div.className = 'log-step';
-  div.innerHTML = `
-    <div class="log-icon ${type}"><i class="ti ${icons[type]||'ti-circle'}"></i></div>
-    <div class="log-body">
-      <div class="log-label">${esc(label)}</div>
-      <div class="log-text">${esc(text)}</div>
-    </div>`;
-  document.getElementById('agent-log').appendChild(div);
+  div.innerHTML = '<div class="log-ico ' + type + '"><i class="ti ' + (icons[type]||'ti-circle') + '"></i></div>' +
+    '<div class="log-body"><div class="lbl">' + esc(label) + '</div><div class="msg">' + esc(text) + '</div></div>';
+  panel.appendChild(div);
   div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -461,14 +428,14 @@ function showCV(text) {
   el.textContent = text;
   el.style.display = 'block';
   document.getElementById('copy-btn').style.display = 'flex';
-  addLog('result', 'Done', 'CV generated successfully.');
+  log('result', 'Done', 'CV generated.');
 }
 
 function copyCV() {
   navigator.clipboard.writeText(document.getElementById('cv-text').textContent);
-  const btn = document.getElementById('copy-btn');
-  btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
-  setTimeout(() => btn.innerHTML = '<i class="ti ti-copy"></i> Copy', 2000);
+  const b = document.getElementById('copy-btn');
+  b.innerHTML = '<i class="ti ti-check"></i> Copied!';
+  setTimeout(() => b.innerHTML = '<i class="ti ti-copy"></i> Copy', 2000);
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
