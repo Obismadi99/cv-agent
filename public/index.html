@@ -353,7 +353,7 @@ async function runAgent() {
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, system: SYS, tools: TOOLS, messages })
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: SYS, tools: TOOLS, messages })
       });
       const data = await res.json();
       if (data.error) { log('error', 'API Error', data.error.message || JSON.stringify(data.error)); break; }
