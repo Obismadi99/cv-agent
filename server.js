@@ -67,7 +67,9 @@ Open Source Contributions
 seedDocs();
 
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use(express.static(PUBLIC_DIR));
 
 // --- DOCS API ---
 
@@ -149,6 +151,8 @@ app.post('/api/agent', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+app.get("*", (req, res) => res.sendFile(path.join(PUBLIC_DIR, "index.html")));
 
 app.listen(PORT, () => {
   console.log(`CV Agent running on port ${PORT}`);
