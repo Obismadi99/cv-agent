@@ -1,45 +1,79 @@
-const express = require('express');
-const fetch   = require('node-fetch');
-const fs      = require('fs');
-const path    = require('path');
-const crypto  = require('crypto');
+const express  = require('express');
+const fetch    = require('node-fetch');
+const path     = require('path');
+const crypto   = require('crypto');
 const PDFDocument = require('pdfkit');
+const { createClient } = require("@supabase/supabase-js");
+const ws = require("ws");
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
-const DOCS_DIR = path.join(__dirname, 'docs-store');
-const PDF_DIR  = path.join(__dirname, 'pdf-cache');
-[DOCS_DIR, PDF_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
+const ANTHROPIC_API_KEY  = process.env.ANTHROPIC_API_KEY;
+const SUPABASE_URL       = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY  = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-function seedDocs() {
-  if (fs.readdirSync(DOCS_DIR).filter(f => f.endsWith('.txt')).length > 0) return;
-  fs.writeFileSync(path.join(DOCS_DIR, 'CV.txt'),
-`Name: Alex Müller
-Email: alex.mueller@gmail.com
-Phone: +49 176 4521 8830
+// Service-role client (bypasses RLS for server operations)
+let supabaseAdmin = null;
+if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+  supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { realtime: { transport: ws } });
+}
+
+app.use(express.json({ limit: '4mb' }));
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use(express.static(PUBLIC_DIR));
+
+// ── AUTH MIDDLEWARE ──
+// Verifies Supabase JWT and attaches user to req
+async function requireAuth(req, res, next) {
+  if (!supabaseAdmin) return res.status(503).json({ error: 'Supabase not configured' });
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
+  const token = auth.slice(7);
+  try {
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error) {
+      console.error('Auth error:', error.message, error.status);
+      return res.status(401).json({ error: 'Invalid token: ' + error.message });
+    }
+    if (!user) return res.status(401).json({ error: 'No user found for token' });
+    req.user = user;
+    next();
+  } catch(e) { console.error('Auth exception:', e); res.status(401).json({ error: 'Auth error: ' + e.message }); }
+}
+
+// ── SAMPLE DOCS ──
+const SAMPLE_DOCS = [
+  {
+    name: 'CV',
+    content: `Name: Your Name
+Email: your@email.com
+Phone: +49 000 0000000
 Location: Berlin, Germany
-LinkedIn: linkedin.com/in/alexmueller-dev
+LinkedIn: linkedin.com/in/yourname
 
 SUMMARY
-Backend-focused software engineer with 4 years experience building production systems in Java and Python. Passionate about clean architecture and scalable microservices.
+Experienced software engineer with a passion for building scalable systems.
 
 EXPERIENCE
-Backend Engineer — FinTech Startup GmbH, Berlin (2022–present)
-- Built REST APIs serving 200k daily users using Java Spring Boot
-- Migrated legacy monolith to microservices, reducing deploy time by 60%
-- Managed PostgreSQL databases and Redis caching layers
+Senior Software Engineer — Acme Corp (2021–present)
+- Led migration of monolith to microservices architecture
+- Reduced API latency by 40% through caching strategy
 
-Junior Developer — WebAgency Berlin (2021–2022)
-- Developed internal tooling in Python and Node.js
-- Wrote unit and integration tests, maintained CI/CD pipelines
+Software Engineer — StartupXYZ (2018–2021)
+- Built REST APIs in Java Spring Boot
+- Deployed to AWS using Kubernetes
 
 EDUCATION
-B.Sc. Computer Science — Humboldt University Berlin (2021)`);
+M.Sc. Computer Science — TU Berlin (2018)
 
-  fs.writeFileSync(path.join(DOCS_DIR, 'Skills & Projects.txt'),
-`TECHNICAL SKILLS
+SKILLS
+Java, Python, JavaScript, Spring Boot, Docker, Kubernetes, PostgreSQL, AWS`
+  },
+  {
+    name: 'Skills & Projects',
+    content: `TECHNICAL SKILLS
 Languages: Java, Python, JavaScript, TypeScript, SQL
 Backend: Spring Boot, Node.js, Django
 Cloud: AWS (EC2, S3, Lambda, RDS)
@@ -49,260 +83,387 @@ Databases: PostgreSQL, MongoDB, Redis
 PROJECTS
 Real-time Analytics Pipeline
 - Built streaming pipeline using Kafka + Flink
-- Processed 1M events/day, reduced latency to <100ms`);
-}
-seedDocs();
+- Processed 1M events/day, reduced latency to <100ms
 
-app.use(express.json({ limit: '4mb' }));
-const PUBLIC_DIR = path.join(__dirname, 'public');
-app.use(express.static(PUBLIC_DIR));
+Payment Processing Service
+- Built high-throughput API handling 500 transactions/second
+- Used Kafka for async processing, reduced latency by 45%`
+  }
+];
 
 // ── DOCS API ──
-app.get('/api/docs', (req, res) => {
+app.get('/api/docs', requireAuth, async (req, res) => {
   try {
-    const files = fs.readdirSync(DOCS_DIR).filter(f => f.endsWith('.txt'));
-    res.json(files.map(f => ({
-      name: f.replace(/\.txt$/, ''),
-      chars: fs.readFileSync(path.join(DOCS_DIR, f), 'utf8').length
-    })));
+    const { data, error } = await supabaseAdmin
+      .from('documents')
+      .select('id, name, content')
+      .eq('user_id', req.user.id)
+      .order('created_at');
+    if (error) throw error;
+
+    // First login — seed sample docs
+    if (data.length === 0) {
+      const toInsert = SAMPLE_DOCS.map(d => ({ user_id: req.user.id, name: d.name, content: d.content }));
+      const { data: seeded, error: seedErr } = await supabaseAdmin
+        .from('documents')
+        .insert(toInsert)
+        .select('id, name, content');
+      if (seedErr) throw seedErr;
+      return res.json(seeded.map(d => ({ id: d.id, name: d.name, chars: (d.content || '').length })));
+    }
+
+    res.json(data.map(d => ({ id: d.id, name: d.name, chars: (d.content || '').length })));
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-app.get('/api/docs/:name', (req, res) => {
-  const fp = path.join(DOCS_DIR, req.params.name + '.txt');
-  if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
-  res.json({ name: req.params.name, content: fs.readFileSync(fp, 'utf8') });
+app.get('/api/docs/:id', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('documents')
+      .select('*')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .single();
+    if (error || !data) return res.status(404).json({ error: 'Not found' });
+    res.json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-app.put('/api/docs/:name', (req, res) => {
-  const name = req.params.name;
-  if (name.includes('/') || name.includes('..')) return res.status(400).json({ error: 'Invalid name' });
-  fs.writeFileSync(path.join(DOCS_DIR, name + '.txt'), req.body.content || '', 'utf8');
-  res.json({ ok: true });
+app.post('/api/docs', requireAuth, async (req, res) => {
+  try {
+    const { name, content } = req.body;
+    const { data, error } = await supabaseAdmin
+      .from('documents')
+      .insert({ user_id: req.user.id, name: name || 'Untitled', content: content || '' })
+      .select().single();
+    if (error) throw error;
+    res.json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/docs/:name/rename', (req, res) => {
-  const { newName } = req.body;
-  if (!newName || newName.includes('/') || newName.includes('..')) return res.status(400).json({ error: 'Invalid' });
-  const old = path.join(DOCS_DIR, req.params.name + '.txt');
-  if (!fs.existsSync(old)) return res.status(404).json({ error: 'Not found' });
-  fs.renameSync(old, path.join(DOCS_DIR, newName + '.txt'));
-  res.json({ ok: true });
+app.put('/api/docs/:id', requireAuth, async (req, res) => {
+  try {
+    const { name, content } = req.body;
+    const updates = {};
+    if (name !== undefined)    updates.name    = name;
+    if (content !== undefined) updates.content = content;
+    const { error } = await supabaseAdmin
+      .from('documents')
+      .update(updates)
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete('/api/docs/:name', (req, res) => {
-  const fp = path.join(DOCS_DIR, req.params.name + '.txt');
-  if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
-  fs.unlinkSync(fp);
-  res.json({ ok: true });
+app.delete('/api/docs/:id', requireAuth, async (req, res) => {
+  try {
+    const { error } = await supabaseAdmin
+      .from('documents')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── CV HISTORY API ──
+app.get('/api/history', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('cv_history')
+      .select('id, created_at, job_title, company, style, match_score')
+      .eq('user_id', req.user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    res.json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/history/:id', requireAuth, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('cv_history')
+      .select('*')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .single();
+    if (error || !data) return res.status(404).json({ error: 'Not found' });
+    res.json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/history', requireAuth, async (req, res) => {
+  try {
+    const { cv_json, job_description, style, match_score, match_breakdown } = req.body;
+    const jobTitle = cv_json?.experience?.[0]?.title || '';
+    const company  = cv_json?.experience?.[0]?.company || '';
+    const { data, error } = await supabaseAdmin
+      .from('cv_history')
+      .insert({
+        user_id: req.user.id,
+        cv_json,
+        job_description,
+        style: style || 'modern',
+        job_title: jobTitle,
+        company,
+        match_score,
+        match_breakdown
+      })
+      .select().single();
+    if (error) throw error;
+    res.json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/history/:id', requireAuth, async (req, res) => {
+  try {
+    const { error } = await supabaseAdmin
+      .from('cv_history')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── ANTHROPIC PROXY ──
-app.post('/api/agent', async (req, res) => {
-  if (!ANTHROPIC_API_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set.' });
+app.post('/api/agent', requireAuth, async (req, res) => {
+  if (!ANTHROPIC_API_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify(req.body)
     });
-    res.status(r.status).json(await r.json());
+    const data = await r.json();
+    res.status(r.status).json(data);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── PDF GENERATION FROM STRUCTURED JSON ──
-function buildPDF(cv, outputPath) {
+// ── JOB DESCRIPTION SCRAPER ──
+app.post('/api/scrape', requireAuth, async (req, res) => {
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ error: 'URL required' });
+  try {
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CVAgent/1.0)' }, redirect: 'follow' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const html = await r.text();
+    // Strip tags, collapse whitespace
+    const text = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 8000);
+    res.json({ text });
+  } catch(e) { res.status(500).json({ error: `Could not fetch URL: ${e.message}` }); }
+});
+
+// ── PDF GENERATION ──
+const STYLES = {
+  modern: {
+    hdrBg: '#0f172a', hdrFg: '#ffffff', hdrSub: '#93c5fd',
+    accent: '#1d4ed8', ink: '#111827', mid: '#374151',
+    muted: '#6b7280', rule: '#e5e7eb', light: '#9ca3af',
+    sideBar: true, sideBarColor: '#1d4ed8'
+  },
+  classic: {
+    hdrBg: '#1a1a1a', hdrFg: '#ffffff', hdrSub: '#cccccc',
+    accent: '#1a1a1a', ink: '#000000', mid: '#333333',
+    muted: '#555555', rule: '#cccccc', light: '#999999',
+    sideBar: false
+  },
+  minimal: {
+    hdrBg: '#ffffff', hdrFg: '#111827', hdrSub: '#6b7280',
+    accent: '#059669', ink: '#111827', mid: '#374151',
+    muted: '#6b7280', rule: '#e5e7eb', light: '#9ca3af',
+    sideBar: false
+  }
+};
+
+function buildPDF(cv, outputPath, styleName) {
   return new Promise((resolve, reject) => {
+    const S   = STYLES[styleName] || STYLES.modern;
     const doc = new PDFDocument({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 }, info: { Title: 'Curriculum Vitae' } });
+    const fs  = require('fs');
     const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
 
     const PW = doc.page.width;
     const PH = doc.page.height;
     const ML = 52, MR = 52, CW = PW - ML - MR;
-
-    // Colours
-    const INK    = '#111827';
-    const ACCENT = '#1d4ed8';
-    const MID    = '#374151';
-    const MUTED  = '#6b7280';
-    const LIGHT  = '#9ca3af';
-    const RULE   = '#e5e7eb';
-    const HDR_BG = '#0f172a';
-    const HDR_FG = '#ffffff';
-    const HDR_SB = '#93c5fd';
-
-    // Fonts
-    const FB = 'Helvetica-Bold';
-    const FR = 'Helvetica';
+    const FB = 'Helvetica-Bold', FR = 'Helvetica';
 
     // ── HEADER ──
-    const HDR_H = cv.title ? 122 : 108;
-    doc.rect(0, 0, PW, HDR_H).fill(HDR_BG);
-    doc.rect(0, 0, 5, HDR_H).fill(ACCENT);
+    const isMinimal = styleName === 'minimal';
+    const HDR_H = isMinimal ? 80 : (cv.title ? 118 : 104);
 
-    let hy = 26;
-    doc.font(FB).fontSize(27).fillColor(HDR_FG)
+    if (!isMinimal) {
+      doc.rect(0, 0, PW, HDR_H).fill(S.hdrBg);
+      if (S.sideBar) doc.rect(0, 0, 5, HDR_H).fill(S.sideBarColor);
+    } else {
+      // minimal: just a bottom border
+      doc.moveTo(ML, HDR_H - 1).lineTo(ML + CW, HDR_H - 1).strokeColor(S.accent).lineWidth(2).stroke();
+    }
+
+    let hy = isMinimal ? 22 : 24;
+    doc.font(FB).fontSize(isMinimal ? 24 : 27).fillColor(isMinimal ? S.ink : S.hdrFg)
        .text(cv.name || 'Curriculum Vitae', ML, hy, { width: CW });
     hy = doc.y + 2;
 
     if (cv.title) {
-      doc.font(FR).fontSize(11).fillColor(HDR_SB)
+      doc.font(FR).fontSize(11).fillColor(isMinimal ? S.muted : S.hdrSub)
          .text(cv.title, ML, hy, { width: CW });
       hy = doc.y + 4;
     }
 
-    // Contact line — only include fields that exist
     const contactParts = [cv.email, cv.phone, cv.location, cv.linkedin].filter(Boolean);
     if (contactParts.length) {
-      doc.font(FR).fontSize(9).fillColor(HDR_SB)
+      doc.font(FR).fontSize(9).fillColor(isMinimal ? S.muted : S.hdrSub)
          .text(contactParts.join('  ·  '), ML, hy, { width: CW });
     }
 
-    let y = HDR_H + 26;
+    let y = HDR_H + (isMinimal ? 22 : 24);
 
-    // Helper: check remaining page space
     function checkPage(needed) {
       if (y + needed > PH - 44) {
         doc.addPage();
-        doc.rect(0, 0, 5, PH).fill(ACCENT);
+        if (S.sideBar) doc.rect(0, 0, 5, PH).fill(S.sideBarColor);
         y = 36;
       }
     }
 
-    // Helper: draw section heading
     function sectionHeading(label) {
       checkPage(36);
-      doc.font(FB).fontSize(7.5).fillColor(ACCENT)
-         .text(label.toUpperCase(), ML, y, { width: CW, characterSpacing: 1.5 });
-      y += 11;
-      doc.moveTo(ML, y).lineTo(ML + CW, y).strokeColor(RULE).lineWidth(0.6).stroke();
+      if (styleName === 'classic') {
+        doc.font(FB).fontSize(10).fillColor(S.ink).text(label.toUpperCase(), ML, y, { width: CW, characterSpacing: 0.8 });
+        y += 12;
+        doc.moveTo(ML, y).lineTo(ML + CW, y).strokeColor(S.ink).lineWidth(0.8).stroke();
+      } else if (styleName === 'minimal') {
+        doc.font(FB).fontSize(9).fillColor(S.accent).text(label.toUpperCase(), ML, y, { width: CW, characterSpacing: 1.5 });
+        y += 11;
+        doc.moveTo(ML, y).lineTo(ML + CW, y).strokeColor(S.rule).lineWidth(0.6).stroke();
+      } else {
+        doc.font(FB).fontSize(7.5).fillColor(S.accent).text(label.toUpperCase(), ML, y, { width: CW, characterSpacing: 1.5 });
+        y += 11;
+        doc.moveTo(ML, y).lineTo(ML + CW, y).strokeColor(S.rule).lineWidth(0.6).stroke();
+      }
       y += 9;
     }
 
-    // Helper: bullet point
     function bullet(text) {
       checkPage(16);
-      doc.circle(ML + 5.5, y + 5, 1.6).fill(ACCENT);
-      doc.font(FR).fontSize(9.5).fillColor(MID)
-         .text(text, ML + 14, y, { width: CW - 14, lineGap: 1.5 });
+      if (styleName === 'classic') {
+        doc.font(FR).fontSize(9.5).fillColor(S.mid).text('•  ' + text, ML + 8, y, { width: CW - 8, lineGap: 1.5 });
+      } else {
+        doc.circle(ML + 5.5, y + 5, 1.6).fill(S.accent);
+        doc.font(FR).fontSize(9.5).fillColor(S.mid).text(text, ML + 14, y, { width: CW - 14, lineGap: 1.5 });
+      }
       y = doc.y + 3;
     }
 
-    // ── SUMMARY ──
+    function roleHeader(role) {
+      checkPage(32);
+      doc.font(FB).fontSize(10.5).fillColor(S.ink)
+         .text(role.title || '', ML, y, { width: CW * 0.70 });
+      if (role.dates) {
+        doc.font(FR).fontSize(9).fillColor(S.muted)
+           .text(role.dates, ML + CW * 0.70, y, { width: CW * 0.30, align: 'right' });
+      }
+      y = doc.y + 1;
+      const compParts = [role.company, role.location].filter(Boolean).join(', ');
+      if (compParts) {
+        doc.font(styleName === 'classic' ? FB : FR).fontSize(9.5).fillColor(S.muted)
+           .text(compParts, ML, y, { width: CW });
+        y = doc.y + 5;
+      }
+    }
+
+    // SUMMARY
     if (cv.summary) {
       sectionHeading('Professional Summary');
-      checkPage(20);
-      doc.font(FR).fontSize(9.5).fillColor(MID)
+      doc.font(FR).fontSize(9.5).fillColor(S.mid)
          .text(cv.summary, ML, y, { width: CW, lineGap: 2, align: 'justify' });
       y = doc.y + 18;
     }
 
-    // ── EXPERIENCE ──
-    if (cv.experience && cv.experience.length) {
+    // EXPERIENCE
+    if (cv.experience?.length) {
       sectionHeading('Experience');
       cv.experience.forEach((role, i) => {
-        checkPage(32);
-
-        // Role title (left) + dates (right)
-        const titleW = CW * 0.70;
-        const dateW  = CW * 0.30;
-        doc.font(FB).fontSize(10.5).fillColor(INK)
-           .text(role.title || '', ML, y, { width: titleW, lineGap: 1 });
-        if (role.dates) {
-          doc.font(FR).fontSize(9).fillColor(MUTED)
-             .text(role.dates, ML + titleW, y, { width: dateW, align: 'right' });
-        }
-        y = doc.y + 1;
-
-        // Company + location
-        const compParts = [role.company, role.location].filter(Boolean).join(', ');
-        if (compParts) {
-          doc.font(FR).fontSize(9.5).fillColor(MUTED)
-             .text(compParts, ML, y, { width: CW });
-          y = doc.y + 5;
-        }
-
-        // Bullets
+        roleHeader(role);
         (role.bullets || []).forEach(b => bullet(b));
-
         if (i < cv.experience.length - 1) y += 10;
       });
       y += 16;
     }
 
-    // ── EDUCATION ──
-    if (cv.education && cv.education.length) {
+    // EDUCATION
+    if (cv.education?.length) {
       sectionHeading('Education');
       cv.education.forEach((edu, i) => {
         checkPage(24);
-        doc.font(FB).fontSize(10.5).fillColor(INK)
+        doc.font(FB).fontSize(10.5).fillColor(S.ink)
            .text(edu.degree || '', ML, y, { width: CW * 0.70 });
-        if (edu.dates) {
-          doc.font(FR).fontSize(9).fillColor(MUTED)
-             .text(edu.dates, ML + CW * 0.70, y, { width: CW * 0.30, align: 'right' });
-        }
+        if (edu.dates) doc.font(FR).fontSize(9).fillColor(S.muted).text(edu.dates, ML + CW * 0.70, y, { width: CW * 0.30, align: 'right' });
         y = doc.y + 1;
-        const instParts = [edu.institution, edu.location].filter(Boolean).join(', ');
-        if (instParts) {
-          doc.font(FR).fontSize(9.5).fillColor(MUTED)
-             .text(instParts, ML, y, { width: CW });
-          y = doc.y + 2;
-        }
+        const inst = [edu.institution, edu.location].filter(Boolean).join(', ');
+        if (inst) { doc.font(FR).fontSize(9.5).fillColor(S.muted).text(inst, ML, y, { width: CW }); y = doc.y + 2; }
         (edu.bullets || []).forEach(b => bullet(b));
         if (i < cv.education.length - 1) y += 8;
       });
       y += 16;
     }
 
-    // ── SKILLS ──
+    // SKILLS
     if (cv.skills && Object.keys(cv.skills).length) {
       sectionHeading('Skills');
       Object.entries(cv.skills).forEach(([key, val]) => {
         checkPage(14);
-        doc.font(FB).fontSize(9.5).fillColor(INK)
-           .text(key + ':', ML, y, { width: CW * 0.20, lineGap: 1 });
+        doc.font(FB).fontSize(9.5).fillColor(S.ink).text(key + ':', ML, y, { width: CW * 0.20, lineGap: 1 });
         const kvY = doc.y - 13.5;
-        doc.font(FR).fontSize(9.5).fillColor(MID)
-           .text(val, ML + CW * 0.22, kvY, { width: CW * 0.78, lineGap: 1 });
+        doc.font(FR).fontSize(9.5).fillColor(S.mid).text(val, ML + CW * 0.22, kvY, { width: CW * 0.78, lineGap: 1 });
         y = doc.y + 4;
       });
       y += 12;
     }
 
-    // ── PROJECTS ──
-    if (cv.projects && cv.projects.length) {
+    // PROJECTS
+    if (cv.projects?.length) {
       sectionHeading('Projects');
       cv.projects.forEach((proj, i) => {
         checkPage(24);
-        doc.font(FB).fontSize(10).fillColor(INK)
-           .text(proj.name || '', ML, y, { width: CW });
+        doc.font(FB).fontSize(10).fillColor(S.ink).text(proj.name || '', ML, y, { width: CW });
         y = doc.y + 2;
-        if (proj.description) {
-          doc.font(FR).fontSize(9.5).fillColor(MID)
-             .text(proj.description, ML, y, { width: CW, lineGap: 1.5 });
-          y = doc.y + 3;
-        }
+        if (proj.description) { doc.font(FR).fontSize(9.5).fillColor(S.mid).text(proj.description, ML, y, { width: CW, lineGap: 1.5 }); y = doc.y + 3; }
         (proj.bullets || []).forEach(b => bullet(b));
         if (i < cv.projects.length - 1) y += 8;
       });
       y += 12;
     }
 
-    // ── EXTRA SECTIONS (anything else the AI adds) ──
-    if (cv.extra_sections && cv.extra_sections.length) {
+    // EXTRA SECTIONS
+    if (cv.extra_sections?.length) {
       cv.extra_sections.forEach(sec => {
         sectionHeading(sec.heading || 'Additional');
         (sec.items || []).forEach(item => {
           checkPage(14);
-          doc.font(FR).fontSize(9.5).fillColor(MID)
-             .text(item, ML, y, { width: CW, lineGap: 1.5 });
+          doc.font(FR).fontSize(9.5).fillColor(S.mid).text(item, ML, y, { width: CW, lineGap: 1.5 });
           y = doc.y + 3;
         });
         y += 12;
       });
     }
 
+    // FOOTER
+    doc.font(FR).fontSize(7).fillColor(S.light)
+       .text('Generated by CV Agent', 0, PH - 22, { width: PW, align: 'center' });
 
     doc.end();
     stream.on('finish', resolve);
@@ -310,30 +471,24 @@ function buildPDF(cv, outputPath) {
   });
 }
 
-app.post('/api/generate-pdf', async (req, res) => {
-  const { cv_json } = req.body;
+app.post('/api/generate-pdf', requireAuth, async (req, res) => {
+  const { cv_json, style } = req.body;
   if (!cv_json) return res.status(400).json({ error: 'cv_json required' });
-
+  const fs = require('fs');
+  const os = require('os');
   const id  = crypto.randomBytes(8).toString('hex');
-  const out = path.join(PDF_DIR, id + '.pdf');
-
+  const out = path.join(os.tmpdir(), id + '.pdf');
   try {
-    await buildPDF(cv_json, out);
-    res.json({ pdf_id: id });
+    await buildPDF(cv_json, out, style || 'modern');
+    const pdfBytes = fs.readFileSync(out);
+    fs.unlinkSync(out);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="cv.pdf"`);
+    res.send(pdfBytes);
   } catch(e) {
     console.error('PDF error:', e);
     res.status(500).json({ error: e.message });
   }
-});
-
-// ── SERVE PDF ──
-app.get('/api/pdf/:id', (req, res) => {
-  const id = req.params.id.replace(/[^a-f0-9]/g, '');
-  const fp = path.join(PDF_DIR, id + '.pdf');
-  if (!fs.existsSync(fp)) return res.status(404).send('Not found');
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'inline; filename="cv.pdf"');
-  res.sendFile(fp);
 });
 
 app.get('*', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));

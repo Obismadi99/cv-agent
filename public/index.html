@@ -6,248 +6,498 @@
 <title>CV Agent</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #f5f5f4; --surface: #fff; --surface2: #f2f1ef;
-  --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
-  --text: #1c1c1e; --text2: #636366; --text3: #aeaeb2;
-  --accent: #1d4ed8; --accent-bg: #eff6ff;
-  --success: #16a34a; --success-bg: #f0fdf4;
-  --warn: #d97706; --warn-bg: #fffbeb;
-  --danger: #dc2626; --danger-bg: #fef2f2;
-  --r: 8px; --r-lg: 12px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f4;--surface:#fff;--surface2:#f2f1ef;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.16);
+  --text:#1c1c1e;--text2:#636366;--text3:#aeaeb2;
+  --accent:#1d4ed8;--accent-bg:#eff6ff;
+  --success:#16a34a;--success-bg:#f0fdf4;
+  --warn:#d97706;--warn-bg:#fffbeb;
+  --danger:#dc2626;--danger-bg:#fef2f2;
+  --r:8px;--r-lg:12px
 }
-html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
 
-header { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-header h1 { font-size: 15px; font-weight: 700; }
-.tabs { margin-left: auto; display: flex; gap: 3px; }
-.tab { padding: 6px 14px; border-radius: var(--r); font-size: 13px; cursor: pointer; color: var(--text2); border: none; background: none; display: flex; align-items: center; gap: 6px; font-weight: 500; }
-.tab:hover { background: var(--surface2); color: var(--text); }
-.tab.active { background: var(--accent); color: #fff; }
+/* ── AUTH SCREENS ── */
+.auth-screen{display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg)}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:2rem;width:360px;box-shadow:0 4px 24px rgba(0,0,0,0.06)}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.auth-logo h1{font-size:18px;font-weight:700}
+.auth-tabs{display:flex;gap:0;margin-bottom:1.5rem;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden}
+.auth-tab{flex:1;padding:8px;font-size:13px;font-weight:500;cursor:pointer;background:none;border:none;color:var(--text2);transition:all 0.12s}
+.auth-tab.active{background:var(--accent);color:#fff}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.field label{font-size:12px;font-weight:600;color:var(--text2)}
+.field input{padding:9px 12px;border:1px solid var(--border2);border-radius:var(--r);font-size:14px;color:var(--text);background:var(--surface2);outline:none}
+.field input:focus{border-color:var(--accent)}
+.auth-btn{width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed}
+.auth-err{font-size:12px;color:var(--danger);background:var(--danger-bg);padding:8px 12px;border-radius:var(--r);margin-bottom:12px;display:none}
+.auth-err.show{display:block}
+.auth-ok{font-size:12px;color:var(--success);background:var(--success-bg);padding:8px 12px;border-radius:var(--r);margin-bottom:12px;display:none}
+.auth-ok.show{display:block}
 
-.app-body { display: flex; flex: 1; height: calc(100vh - 52px); overflow: hidden; }
-.view { display: none; flex: 1; overflow: hidden; }
-.view.active { display: flex; }
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;height:100vh}
+#app.show{display:flex}
+header{height:52px;background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.25rem;display:flex;align-items:center;gap:10px;flex-shrink:0}
+header h1{font-size:15px;font-weight:700}
+.nav-tabs{display:flex;gap:3px}
+.nav-tab{padding:6px 12px;border-radius:var(--r);font-size:13px;cursor:pointer;color:var(--text2);border:none;background:none;display:flex;align-items:center;gap:5px;font-weight:500}
+.nav-tab:hover{background:var(--surface2);color:var(--text)}
+.nav-tab.active{background:var(--accent);color:#fff}
+.user-area{margin-left:auto;display:flex;align-items:center;gap:8px}
+.user-email{font-size:12px;color:var(--text2)}
+.logout-btn{padding:5px 10px;font-size:12px;border:1px solid var(--border2);border-radius:var(--r);background:none;cursor:pointer;color:var(--text2)}
+.logout-btn:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger)}
 
-/* DOCS */
-#view-docs { flex-direction: row; }
-.sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-.sidebar-hd { padding: 12px 12px 8px; }
-.sidebar-hd span { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
-.doc-list { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
-.doc-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r); cursor: pointer; border: 1px solid transparent; }
-.doc-item:hover { background: var(--surface2); }
-.doc-item.active { background: var(--accent-bg); border-color: rgba(29,78,216,0.2); }
-.doc-item .dname { flex: 1; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.doc-item.active .dname { color: var(--accent); }
-.doc-item i.ti-file-text { font-size: 14px; color: var(--text3); flex-shrink: 0; }
-.doc-item.active i.ti-file-text { color: var(--accent); }
-.doc-item .dchars { font-size: 11px; color: var(--text3); }
-.ddel { opacity: 0; background: none; border: none; cursor: pointer; padding: 3px; border-radius: 5px; font-size: 13px; color: var(--text3); flex-shrink: 0; }
-.doc-item:hover .ddel { opacity: 1; }
-.ddel:hover { color: var(--danger); background: var(--danger-bg); }
-.sidebar-ft { padding: 8px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
-.ninput { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); }
-.ninput:focus { outline: none; border-color: var(--accent); }
-.abtn { padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); cursor: pointer; font-size: 14px; color: var(--text2); }
-.abtn:hover { background: var(--surface); }
+.app-body{flex:1;overflow:hidden;display:flex}
+.view{display:none;flex:1;overflow:hidden}
+.view.active{display:flex}
 
-.editor { flex: 1; display: flex; flex-direction: column; background: var(--surface); }
-.editor-hd { height: 46px; border-bottom: 1px solid var(--border); padding: 0 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.editor-hd i { font-size: 15px; color: var(--text3); }
-.title-in { flex: 1; border: none; background: none; font-size: 14px; font-weight: 600; color: var(--text); outline: none; }
-.saved-badge { font-size: 11px; color: var(--success); background: var(--success-bg); padding: 3px 10px; border-radius: 99px; opacity: 0; transition: opacity 0.3s; white-space: nowrap; }
-.saved-badge.show { opacity: 1; }
-.editor textarea { flex: 1; border: none; background: var(--surface); padding: 1.25rem 1.5rem; font-size: 13px; line-height: 1.8; color: var(--text); resize: none; outline: none; font-family: 'Menlo', 'SF Mono', monospace; }
-.doc-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text3); }
-.doc-empty i { font-size: 32px; }
-.doc-empty p { font-size: 13px; }
+/* ── DOCS TAB ── */
+#view-docs{flex-direction:row}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-hd{padding:12px 12px 8px}
+.sidebar-hd span{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.doc-list{flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:2px}
+.doc-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r);cursor:pointer;border:1px solid transparent}
+.doc-item:hover{background:var(--surface2)}
+.doc-item.active{background:var(--accent-bg);border-color:rgba(29,78,216,.2)}
+.doc-item .dname{flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-item.active .dname{color:var(--accent)}
+.doc-item i.ti-file-text{font-size:14px;color:var(--text3);flex-shrink:0}
+.doc-item.active i.ti-file-text{color:var(--accent)}
+.doc-item .dchars{font-size:11px;color:var(--text3)}
+.ddel{opacity:0;background:none;border:none;cursor:pointer;padding:3px;border-radius:5px;font-size:13px;color:var(--text3);flex-shrink:0}
+.doc-item:hover .ddel{opacity:1}
+.ddel:hover{color:var(--danger);background:var(--danger-bg)}
+.sidebar-ft{padding:8px;border-top:1px solid var(--border);display:flex;gap:6px}
+.ninput{flex:1;padding:7px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--text)}
+.ninput:focus{outline:none;border-color:var(--accent)}
+.abtn{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);cursor:pointer;font-size:14px;color:var(--text2)}
+.abtn:hover{background:var(--surface)}
+.editor{flex:1;display:flex;flex-direction:column;background:var(--surface)}
+.editor-hd{height:46px;border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.editor-hd i{font-size:15px;color:var(--text3)}
+.title-in{flex:1;border:none;background:none;font-size:14px;font-weight:600;color:var(--text);outline:none}
+.saved-badge{font-size:11px;color:var(--success);background:var(--success-bg);padding:3px 10px;border-radius:99px;opacity:0;transition:opacity .3s;white-space:nowrap}
+.saved-badge.show{opacity:1}
+.editor textarea{flex:1;border:none;background:var(--surface);padding:1.25rem 1.5rem;font-size:13px;line-height:1.8;color:var(--text);resize:none;outline:none;font-family:'Menlo','SF Mono',monospace}
+.doc-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3)}
+.doc-empty i{font-size:32px}
+.doc-empty p{font-size:13px}
 
-/* AGENT */
-#view-agent { flex-direction: column; }
-.agent-top { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 1.25rem; flex-shrink: 0; }
-.agent-top label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 8px; }
-.job-ta { width: 100%; height: 90px; border: 1px solid var(--border2); border-radius: var(--r-lg); padding: 10px 12px; font-size: 13px; line-height: 1.6; resize: none; background: var(--surface2); color: var(--text); font-family: inherit; }
-.job-ta:focus { outline: none; border-color: var(--accent); }
-.gen-btn { margin-top: 10px; padding: 9px 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-.gen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+/* ── GENERATE TAB ── */
+#view-generate{flex-direction:column}
+.gen-top{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 1.25rem;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.gen-top label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px}
+.jd-row{display:flex;gap:8px}
+.job-ta{flex:1;height:90px;border:1px solid var(--border2);border-radius:var(--r-lg);padding:10px 12px;font-size:13px;line-height:1.6;resize:none;background:var(--surface2);color:var(--text);font-family:inherit}
+.job-ta:focus{outline:none;border-color:var(--accent)}
+.scrape-col{display:flex;flex-direction:column;gap:6px;width:220px;flex-shrink:0}
+.url-input{padding:8px 10px;font-size:12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--text);outline:none}
+.url-input:focus{border-color:var(--accent)}
+.scrape-btn{padding:8px 10px;font-size:12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px}
+.scrape-btn:hover{background:var(--surface);color:var(--text)}
+.gen-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.style-select{padding:7px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--text);outline:none;cursor:pointer}
+.style-select:focus{border-color:var(--accent)}
+.gen-btn{padding:9px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed}
 
-.agent-main { flex: 1; display: flex; overflow: hidden; }
+.gen-main{flex:1;display:flex;overflow:hidden}
+.log-panel{width:250px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.log-step{display:flex;gap:8px}
+.log-ico{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;margin-top:1px}
+.log-ico.tool{background:var(--warn-bg);color:var(--warn)}
+.log-ico.agent{background:var(--accent-bg);color:var(--accent)}
+.log-ico.result{background:var(--success-bg);color:var(--success)}
+.log-ico.error{background:var(--danger-bg);color:var(--danger)}
+.log-body .llbl{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.log-body .lmsg{font-size:11px;line-height:1.5;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;white-space:pre-wrap;word-break:break-word}
+.log-empty{text-align:center;color:var(--text3);padding:2rem 1rem}
+.log-empty i{font-size:24px;display:block;margin-bottom:8px;opacity:.35}
+.log-empty p{font-size:12px;line-height:1.5}
 
-.log-panel { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
-.log-step { display: flex; gap: 8px; }
-.log-ico { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; margin-top: 1px; }
-.log-ico.tool   { background: var(--warn-bg); color: var(--warn); }
-.log-ico.agent  { background: var(--accent-bg); color: var(--accent); }
-.log-ico.result { background: var(--success-bg); color: var(--success); }
-.log-ico.error  { background: var(--danger-bg); color: var(--danger); }
-.log-body .llbl { font-size: 9px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
-.log-body .lmsg { font-size: 11.5px; line-height: 1.5; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; white-space: pre-wrap; word-break: break-word; }
-.log-empty { text-align: center; color: var(--text3); padding: 2rem 1rem; }
-.log-empty i { font-size: 24px; display: block; margin-bottom: 8px; opacity: 0.35; }
-.log-empty p { font-size: 12px; line-height: 1.5; }
+.cv-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cv-panel-hd{height:46px;border-bottom:1px solid var(--border);padding:0 1.25rem;background:var(--surface);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.cv-panel-hd span{font-size:13px;font-weight:600;color:var(--text2)}
+.hd-actions{margin-left:auto;display:none;gap:6px;align-items:center}
+.hd-btn{padding:5px 12px;font-size:12px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px;font-weight:500}
+.hd-btn:hover{background:var(--surface);color:var(--text)}
+.cv-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.pdf-frame{flex:1;border:none;display:none;background:#525659}
+.pdf-frame.show{display:block}
+.cv-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3)}
+.cv-empty i{font-size:40px;opacity:.25}
+.cv-empty p{font-size:14px}
+.cv-loading{flex:1;align-items:center;justify-content:center;gap:14px;color:var(--text2);display:none;flex-direction:column}
+.cv-loading .big-spin{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.cv-loading p{font-size:13px}
+.feedback-bar{border-top:1px solid var(--border);padding:10px 1.25rem;background:var(--surface);flex-shrink:0;display:none}
+.feedback-bar.show{display:block}
+.feedback-bar label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
+.fb-row{display:flex;gap:8px}
+.fb-ta{flex:1;padding:8px 12px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--text);resize:none;height:52px;font-family:inherit;line-height:1.5}
+.fb-ta:focus{outline:none;border-color:var(--accent)}
+.revise-btn{padding:8px 14px;background:var(--text);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;align-self:flex-end;white-space:nowrap}
+.revise-btn:disabled{opacity:.4;cursor:not-allowed}
 
-.cv-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.cv-panel-hd { height: 46px; border-bottom: 1px solid var(--border); padding: 0 1.25rem; background: var(--surface); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.cv-panel-hd span { font-size: 13px; font-weight: 600; color: var(--text2); }
-.hd-actions { margin-left: auto; display: none; gap: 6px; }
-.hd-btn { padding: 5px 12px; font-size: 12px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 5px; font-weight: 500; }
-.hd-btn:hover { background: var(--surface); color: var(--text); }
+/* ── MATCH SCORE ── */
+.match-panel{width:220px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;padding:14px;background:var(--bg);display:none;flex-direction:column;gap:12px}
+.match-panel.show{display:flex}
+.match-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.score-circle{width:72px;height:72px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto;border:3px solid var(--accent)}
+.score-circle .score-num{font-size:22px;font-weight:700;color:var(--accent)}
+.score-circle .score-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.breakdown-item{display:flex;flex-direction:column;gap:4px}
+.breakdown-item .bi-label{font-size:11px;font-weight:600;color:var(--text2);display:flex;justify-content:space-between}
+.breakdown-item .bi-bar{height:5px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.breakdown-item .bi-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .5s}
+.bi-note{font-size:10.5px;color:var(--text2);line-height:1.5}
 
-.cv-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.pdf-preview { flex: 1; border: none; display: none; background: #525659; }
-.pdf-preview.show { display: block; }
-.cv-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text3); }
-.cv-empty i { font-size: 40px; opacity: 0.25; }
-.cv-empty p { font-size: 14px; }
-.cv-loading { flex: 1; align-items: center; justify-content: center; gap: 14px; color: var(--text2); display: none; flex-direction: column; }
-.cv-loading .big-spinner { width: 36px; height: 36px; border: 3px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-.cv-loading p { font-size: 13px; }
+/* ── HISTORY TAB ── */
+#view-history{flex-direction:column;overflow-y:auto}
+.history-grid{padding:1.5rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-content:start}
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem;cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column;gap:6px}
+.hist-card:hover{border-color:var(--accent)}
+.hist-card .hc-top{display:flex;align-items:flex-start;gap:8px}
+.hist-card .hc-icon{width:36px;height:36px;border-radius:var(--r);background:var(--accent-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;color:var(--accent)}
+.hist-card .hc-title{font-size:13px;font-weight:600;color:var(--text)}
+.hist-card .hc-company{font-size:12px;color:var(--text2)}
+.hist-card .hc-meta{display:flex;align-items:center;gap:8px;margin-top:2px}
+.hist-card .hc-date{font-size:11px;color:var(--text3)}
+.hist-card .hc-score{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px}
+.hist-card .hc-style{font-size:11px;color:var(--text3);text-transform:capitalize}
+.hc-del{margin-left:auto;background:none;border:none;cursor:pointer;padding:4px;border-radius:5px;font-size:13px;color:var(--text3);opacity:0}
+.hist-card:hover .hc-del{opacity:1}
+.hc-del:hover{color:var(--danger);background:var(--danger-bg)}
+.hist-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text3)}
+.hist-empty i{font-size:36px;opacity:.25}
+.hist-empty p{font-size:13px}
 
-.feedback-area { border-top: 1px solid var(--border); padding: 12px 1.25rem; background: var(--surface); flex-shrink: 0; display: none; }
-.feedback-area.show { display: block; }
-.feedback-area label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
-.feedback-row { display: flex; gap: 8px; }
-.feedback-ta { flex: 1; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); resize: none; height: 56px; font-family: inherit; line-height: 1.5; }
-.feedback-ta:focus { outline: none; border-color: var(--accent); }
-.revise-btn { padding: 8px 16px; background: var(--text); color: #fff; border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; align-self: flex-end; white-space: nowrap; }
-.revise-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+.mini-spinner{width:11px;height:11px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1c1c1e;color:#fff;padding:10px 18px;border-radius:var(--r-lg);font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
 </style>
 </head>
 <body>
 
-<header>
-  <i class="ti ti-file-cv" style="font-size:20px;color:#1d4ed8;"></i>
-  <h1>CV Agent</h1>
-  <div class="tabs">
-    <button class="tab active" id="tab-docs" onclick="switchTab('docs')"><i class="ti ti-files"></i> My Docs</button>
-    <button class="tab" id="tab-agent" onclick="switchTab('agent')"><i class="ti ti-robot"></i> Generate CV</button>
-  </div>
-</header>
-
-<div class="app-body">
-  <div class="view active" id="view-docs">
-    <div class="sidebar">
-      <div class="sidebar-hd"><span>Documents</span></div>
-      <div class="doc-list" id="doc-list"></div>
-      <div class="sidebar-ft">
-        <input class="ninput" id="new-name" placeholder="New doc…" onkeydown="if(event.key==='Enter')addDoc()">
-        <button class="abtn" onclick="addDoc()"><i class="ti ti-plus"></i></button>
-      </div>
+<!-- ── AUTH ── -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <i class="ti ti-file-cv" style="font-size:24px;color:#1d4ed8;"></i>
+      <h1>CV Agent</h1>
     </div>
-    <div class="editor" id="editor">
-      <div class="doc-empty" id="doc-empty"><i class="ti ti-file-text"></i><p>Select a document to edit</p></div>
-      <div id="editor-inner" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-        <div class="editor-hd">
-          <i class="ti ti-file-text"></i>
-          <input class="title-in" id="title-in" placeholder="Document name" oninput="onTitleChange(this.value)">
-          <span class="saved-badge" id="saved-badge">Saved ✓</span>
-        </div>
-        <textarea id="doc-ta" oninput="onContentChange(this.value)" placeholder="Paste your CV, skills, experience, projects…"></textarea>
-      </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="setAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="setAuthTab('signup')">Sign Up</button>
     </div>
-  </div>
-
-  <div class="view" id="view-agent">
-    <div class="agent-top">
-      <label>Job Description</label>
-      <textarea class="job-ta" id="job-ta" placeholder="Paste the full job description here…"></textarea>
-      <button class="gen-btn" id="gen-btn" onclick="startGenerate()"><i class="ti ti-sparkles"></i> Generate tailored CV</button>
-    </div>
-    <div class="agent-main">
-      <div class="log-panel" id="log-panel">
-        <div class="log-empty"><i class="ti ti-activity"></i><p>Agent steps appear here</p></div>
-      </div>
-      <div class="cv-panel">
-        <div class="cv-panel-hd">
-          <i class="ti ti-file-check" style="font-size:15px;color:#1d4ed8;"></i>
-          <span>Generated CV</span>
-          <div class="hd-actions" id="hd-actions">
-            <button class="hd-btn" id="download-btn" onclick="downloadPDF()"><i class="ti ti-download"></i> Download PDF</button>
-          </div>
-        </div>
-        <div class="cv-body">
-          <div class="cv-empty" id="cv-empty"><i class="ti ti-file-description"></i><p>Your tailored CV will appear here</p></div>
-          <div class="cv-loading" id="cv-loading"><div class="big-spinner"></div><p id="loading-msg">Working…</p></div>
-          <iframe class="pdf-preview" id="pdf-preview" title="CV Preview"></iframe>
-        </div>
-        <div class="feedback-area" id="feedback-area">
-          <label><i class="ti ti-message-2"></i> Feedback</label>
-          <div class="feedback-row">
-            <textarea class="feedback-ta" id="feedback-ta" placeholder="e.g. Shorten the summary, emphasise leadership more, remove the Projects section…"></textarea>
-            <button class="revise-btn" id="revise-btn" onclick="reviseCV()"><i class="ti ti-refresh"></i> Revise</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-ok" id="auth-ok"></div>
+    <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+    <div class="field"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+    <button class="auth-btn" id="auth-submit-btn" onclick="submitAuth()">Sign In</button>
   </div>
 </div>
 
+<!-- ── APP ── -->
+<div id="app">
+  <header>
+    <i class="ti ti-file-cv" style="font-size:20px;color:#1d4ed8;"></i>
+    <h1>CV Agent</h1>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-docs" onclick="switchTab('docs')"><i class="ti ti-files"></i> My Docs</button>
+      <button class="nav-tab" id="tab-generate" onclick="switchTab('generate')"><i class="ti ti-robot"></i> Generate CV</button>
+      <button class="nav-tab" id="tab-history" onclick="switchTab('history')"><i class="ti ti-history"></i> History</button>
+    </div>
+    <div class="user-area">
+      <span class="user-email" id="user-email"></span>
+      <button class="logout-btn" onclick="logout()"><i class="ti ti-logout"></i> Sign out</button>
+    </div>
+  </header>
+  <div class="app-body">
+
+    <!-- DOCS -->
+    <div class="view active" id="view-docs">
+      <div class="sidebar">
+        <div class="sidebar-hd"><span>Documents</span></div>
+        <div class="doc-list" id="doc-list"></div>
+        <div class="sidebar-ft">
+          <input class="ninput" id="new-name" placeholder="New doc…" onkeydown="if(event.key==='Enter')addDoc()">
+          <button class="abtn" onclick="addDoc()" title="Add"><i class="ti ti-plus"></i></button>
+        </div>
+      </div>
+      <div class="editor" id="editor">
+        <div class="doc-empty" id="doc-empty"><i class="ti ti-file-text"></i><p>Select a document to edit</p></div>
+        <div id="editor-inner" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="editor-hd">
+            <i class="ti ti-file-text"></i>
+            <input class="title-in" id="title-in" placeholder="Document name" oninput="onTitleChange(this.value)">
+            <span class="saved-badge" id="saved-badge">Saved ✓</span>
+          </div>
+          <textarea id="doc-ta" oninput="onContentChange(this.value)" placeholder="Paste your CV, skills, experience, projects…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATE -->
+    <div class="view" id="view-generate">
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="gen-top">
+          <div class="jd-row">
+            <div style="flex:1;">
+              <label>Job Description</label>
+              <textarea class="job-ta" id="job-ta" placeholder="Paste the full job description here…"></textarea>
+            </div>
+            <div class="scrape-col">
+              <label>Or scrape from URL</label>
+              <input class="url-input" id="jd-url" placeholder="https://job-posting-url.com" style="width:100%">
+              <button class="scrape-btn" onclick="scrapeURL()"><i class="ti ti-world-download"></i> Fetch job posting</button>
+            </div>
+          </div>
+          <div class="gen-controls">
+            <div>
+              <label>CV Style</label>
+              <select class="style-select" id="style-select">
+                <option value="modern">Modern</option>
+                <option value="classic">Classic</option>
+                <option value="minimal">Minimal</option>
+              </select>
+            </div>
+            <button class="gen-btn" id="gen-btn" onclick="startGenerate()" style="margin-top:18px;"><i class="ti ti-sparkles"></i> Generate tailored CV</button>
+          </div>
+        </div>
+        <div class="gen-main">
+          <div class="log-panel" id="log-panel">
+            <div class="log-empty"><i class="ti ti-activity"></i><p>Agent steps appear here</p></div>
+          </div>
+          <div class="cv-panel">
+            <div class="cv-panel-hd">
+              <i class="ti ti-file-check" style="font-size:15px;color:#1d4ed8;"></i>
+              <span>Generated CV</span>
+              <div class="hd-actions" id="hd-actions">
+                <button class="hd-btn" onclick="downloadPDF()"><i class="ti ti-download"></i> Download PDF</button>
+                <button class="hd-btn" onclick="saveToCVHistory()" style="background:var(--accent);color:#fff;border-color:var(--accent);"><i class="ti ti-bookmark"></i> Save</button>
+              </div>
+            </div>
+            <div class="cv-body">
+              <div class="cv-empty" id="cv-empty"><i class="ti ti-file-description"></i><p>Your tailored CV will appear here</p></div>
+              <div class="cv-loading" id="cv-loading"><div class="big-spin"></div><p id="loading-msg">Working…</p></div>
+              <iframe class="pdf-frame" id="pdf-frame" title="CV Preview"></iframe>
+            </div>
+            <div class="feedback-bar" id="feedback-bar">
+              <label><i class="ti ti-message-2"></i> Feedback — what should change?</label>
+              <div class="fb-row">
+                <textarea class="fb-ta" id="fb-ta" placeholder="e.g. Shorten the summary, emphasise leadership, remove Projects section…"></textarea>
+                <button class="revise-btn" id="revise-btn" onclick="reviseCV()"><i class="ti ti-refresh"></i> Revise</button>
+              </div>
+            </div>
+          </div>
+          <div class="match-panel" id="match-panel">
+            <div class="match-title">Match Score</div>
+            <div class="score-circle" id="score-circle">
+              <span class="score-num" id="score-num">—</span>
+              <span class="score-lbl">match</span>
+            </div>
+            <div id="breakdown-items"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="view" id="view-history">
+      <div class="history-grid" id="history-grid">
+        <div class="hist-empty" style="grid-column:1/-1;height:60vh;"><i class="ti ti-history"></i><p>No saved CVs yet</p></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
-let currentDoc  = null;
+// ── CONFIG ──
+const SUPABASE_URL      = 'https://glygnluzzgcatudxowgr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdseWdubHV6emdjYXR1ZHhvd2dyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTE3NTEsImV4cCI6MjA5NTI4Nzc1MX0.UoS9vivKZxbCLp5wE4pTu0F_aY7KLZsc3FHqdZU8ft0';
+// ── STATE ──
+let authToken   = localStorage.getItem('cv_agent_token') || null;
+let currentUser = null;
+let currentDocId = null;
 let saveTimer   = null;
 let renameTimer = null;
-let lastCVJson  = null;   // structured JSON from last generation
+let lastCVJson  = null;
 let lastJobDesc = '';
-let currentPdfId = null;
+let lastStyle   = 'modern';
+let currentPdfBlob = null;
+
+// ── TOAST ──
+function toast(msg, duration=2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ── AUTH ──
+let authTabMode = 'login';
+function setAuthTab(mode) {
+  authTabMode = mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='signup')));
+  document.getElementById('auth-submit-btn').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-err').classList.remove('show');
+  document.getElementById('auth-ok').classList.remove('show');
+}
+
+async function submitAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const btn   = document.getElementById('auth-submit-btn');
+  const errEl = document.getElementById('auth-err');
+  const okEl  = document.getElementById('auth-ok');
+  errEl.classList.remove('show'); okEl.classList.remove('show');
+  if (!email || !pass) { errEl.textContent = 'Please enter email and password.'; errEl.classList.add('show'); return; }
+  btn.disabled = true; btn.textContent = 'Please wait…';
+  try {
+    const endpoint = authTabMode === 'login'
+      ? `${SUPABASE_URL}/auth/v1/token?grant_type=password`
+      : `${SUPABASE_URL}/auth/v1/signup`;
+    const body = authTabMode === 'login'
+      ? { email, password: pass }
+      : { email, password: pass };
+    const res  = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.error || data.error_description) throw new Error(data.error_description || data.error || 'Auth failed');
+    if (data.access_token) {
+      authToken = data.access_token;
+      currentUser = data.user;
+      localStorage.setItem('cv_agent_token', authToken);
+      showApp();
+    } else {
+      okEl.textContent = 'Account created! Please check your email to confirm, then sign in.';
+      okEl.classList.add('show');
+    }
+  } catch(e) {
+    errEl.textContent = e.message; errEl.classList.add('show');
+  }
+  btn.disabled = false; btn.textContent = authTabMode === 'login' ? 'Sign In' : 'Create Account';
+}
+
+async function validateToken() {
+  if (!authToken) return false;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + authToken } });
+    const data = await res.json();
+    if (data.id) { currentUser = data; return true; }
+    return false;
+  } catch(e) { return false; }
+}
+
+function logout() {
+  authToken = null; currentUser = null;
+  localStorage.removeItem('cv_agent_token');
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('user-email').textContent = currentUser?.email || '';
+  // Reset docs state
+  currentDocId = null;
+  document.getElementById('editor-inner').style.display = 'none';
+  document.getElementById('doc-empty').style.display = 'flex';
+  // Reset generate state
+  lastCVJson = null;
+  lastJobDesc = '';
+  currentPdfBlob = null;
+  document.getElementById('job-ta').value = '';
+  document.getElementById('log-panel').innerHTML = '<div class="log-empty"><i class="ti ti-activity"></i><p>Agent steps appear here</p></div>';
+  document.getElementById('feedback-bar').classList.remove('show');
+  document.getElementById('hd-actions').style.display = 'none';
+  document.getElementById('match-panel').classList.remove('show');
+  document.getElementById('pdf-frame').classList.remove('show');
+  document.getElementById('pdf-frame').src = '';
+  document.getElementById('cv-empty').style.display = 'flex';
+  document.getElementById('cv-loading').style.display = 'none';
+  loadDocs();
+}
+
+// ── API HELPER ──
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+authToken } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (res.status === 401) { logout(); throw new Error('Session expired. Please sign in again.'); }
+  const ct = res.headers.get('content-type') || '';
+  if (ct.includes('application/json')) return res.json();
+  return res;
+}
 
 // ── TABS ──
 function switchTab(t) {
-  ['docs','agent'].forEach(id => {
+  ['docs','generate','history'].forEach(id => {
     document.getElementById('tab-'+id).classList.toggle('active', id===t);
     document.getElementById('view-'+id).classList.toggle('active', id===t);
   });
+  if (t === 'history') loadHistory();
 }
 
 // ── DOCS ──
 async function loadDocs() {
   try {
-    const docs = await fetch('/api/docs').then(r => r.json());
+    const docs = await api('GET', '/api/docs');
+    if (docs.error) throw new Error(docs.error);
     const list = document.getElementById('doc-list');
     list.innerHTML = '';
-    if (!docs.length) { list.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center;">No documents yet</div>'; return; }
+    if (!docs.length) { list.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center;">No documents yet.<br>Add one below.</div>'; return; }
     docs.forEach(doc => {
       const el = document.createElement('div');
-      el.className = 'doc-item' + (doc.name === currentDoc ? ' active' : '');
+      el.className = 'doc-item' + (doc.id === currentDocId ? ' active' : '');
       el.innerHTML = `<i class="ti ti-file-text"></i><span class="dname">${esc(doc.name)}</span><span class="dchars">${doc.chars}c</span><button class="ddel" title="Delete"><i class="ti ti-trash"></i></button>`;
-      el.querySelector('.ddel').addEventListener('click', e => { e.stopPropagation(); deleteDoc(doc.name); });
-      el.addEventListener('click', () => selectDoc(doc.name));
+      el.querySelector('.ddel').addEventListener('click', e => { e.stopPropagation(); deleteDoc(doc.id, doc.name); });
+      el.addEventListener('click', () => selectDoc(doc.id, doc.name));
       list.appendChild(el);
     });
-  } catch(e) { console.error(e); }
+  } catch(e) { toast('Error loading docs: ' + e.message); }
 }
 
-async function selectDoc(name) {
+async function selectDoc(id, name) {
   try {
-    const doc = await fetch('/api/docs/' + encodeURIComponent(name)).then(r => r.json());
-    currentDoc = name;
+    const doc = await api('GET', '/api/docs/' + id);
+    if (doc.error) throw new Error(doc.error);
+    currentDocId = id;
     document.getElementById('doc-empty').style.display = 'none';
     document.getElementById('editor-inner').style.display = 'flex';
     document.getElementById('title-in').value = doc.name;
-    document.getElementById('doc-ta').value   = doc.content;
+    document.getElementById('doc-ta').value = doc.content || '';
     loadDocs();
-  } catch(e) { console.error(e); }
+  } catch(e) { toast('Error: ' + e.message); }
 }
 
 function onTitleChange(val) {
   clearTimeout(renameTimer);
   renameTimer = setTimeout(async () => {
-    if (!currentDoc || !val.trim() || val.trim() === currentDoc) return;
-    await fetch('/api/docs/' + encodeURIComponent(currentDoc) + '/rename', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ newName: val.trim() }) });
-    currentDoc = val.trim(); flashSaved(); loadDocs();
+    if (!currentDocId || !val.trim()) return;
+    try { await api('PUT', '/api/docs/' + currentDocId, { name: val.trim() }); flashSaved(); loadDocs(); }
+    catch(e) { toast('Save error: ' + e.message); }
   }, 800);
 }
 
 function onContentChange(val) {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
-    if (!currentDoc) return;
-    await fetch('/api/docs/' + encodeURIComponent(currentDoc), { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ content: val }) });
-    flashSaved(); loadDocs();
+    if (!currentDocId) return;
+    try { await api('PUT', '/api/docs/' + currentDocId, { content: val }); flashSaved(); loadDocs(); }
+    catch(e) { toast('Save error: ' + e.message); }
   }, 600);
 }
 
@@ -255,15 +505,25 @@ async function addDoc() {
   const inp = document.getElementById('new-name');
   const name = inp.value.trim() || 'Untitled';
   inp.value = '';
-  await fetch('/api/docs/' + encodeURIComponent(name), { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ content: '' }) });
-  await loadDocs(); selectDoc(name);
+  try {
+    const doc = await api('POST', '/api/docs', { name, content: '' });
+    if (doc.error) throw new Error(doc.error);
+    await loadDocs();
+    selectDoc(doc.id, doc.name);
+  } catch(e) { toast('Error: ' + e.message); }
 }
 
-async function deleteDoc(name) {
+async function deleteDoc(id, name) {
   if (!confirm(`Delete "${name}"?`)) return;
-  await fetch('/api/docs/' + encodeURIComponent(name), { method: 'DELETE' });
-  if (currentDoc === name) { currentDoc = null; document.getElementById('editor-inner').style.display = 'none'; document.getElementById('doc-empty').style.display = 'flex'; }
-  loadDocs();
+  try {
+    await api('DELETE', '/api/docs/' + id);
+    if (currentDocId === id) {
+      currentDocId = null;
+      document.getElementById('editor-inner').style.display = 'none';
+      document.getElementById('doc-empty').style.display = 'flex';
+    }
+    loadDocs();
+  } catch(e) { toast('Error: ' + e.message); }
 }
 
 function flashSaved() {
@@ -272,234 +532,383 @@ function flashSaved() {
   b._t = setTimeout(() => b.classList.remove('show'), 1800);
 }
 
+// ── SCRAPE URL ──
+async function scrapeURL() {
+  const url = document.getElementById('jd-url').value.trim();
+  if (!url) { toast('Please enter a URL first'); return; }
+  const btn = document.querySelector('.scrape-btn');
+  btn.innerHTML = '<div class="mini-spinner"></div> Fetching…';
+  btn.disabled = true;
+  try {
+    const data = await api('POST', '/api/scrape', { url });
+    if (data.error) throw new Error(data.error);
+    // Let Claude clean up the scraped text
+    const cleanRes = await api('POST', '/api/agent', {
+      model: 'claude-sonnet-4-6', max_tokens: 1000,
+      messages: [{ role: 'user', content: `Extract just the job description from this scraped webpage text. Remove navigation, footers, ads, and boilerplate. Return only the actual job posting content:\n\n${data.text}` }]
+    });
+    const cleaned = cleanRes.content?.filter(b=>b.type==='text').map(b=>b.text).join('').trim() || data.text;
+    document.getElementById('job-ta').value = cleaned;
+    document.getElementById('jd-url').value = '';
+    toast('Job description fetched!');
+  } catch(e) { toast('Scrape error: ' + e.message); }
+  btn.innerHTML = '<i class="ti ti-world-download"></i> Fetch job posting';
+  btn.disabled = false;
+}
+
 // ── AGENT SYSTEM PROMPT ──
-// The agent uses ReAct: reasons about what docs to read, acts by calling tools,
-// then outputs structured JSON — no free text, no commentary possible
 const SYS = `You are an expert CV writer. You help users create tailored, corporate-standard CVs.
 
-PROCESS (ReAct loop):
-1. REASON: Think about what documents you need to read
-2. ACT: Call list_documents to see available docs
+PROCESS (ReAct — Reason and Act):
+1. REASON: Decide which documents you need
+2. ACT: Call list_documents to see available docs  
 3. ACT: Call read_document for each relevant document
-4. REASON: Analyse the job description — required skills, keywords, seniority, tone
-5. OUTPUT: Return a single JSON object and nothing else
+4. REASON: Analyse the job description — required skills, keywords, seniority, tone, language
+5. OUTPUT: Return a JSON object and NOTHING else
 
-OUTPUT FORMAT — return ONLY this JSON, no other text before or after:
+CRITICAL LANGUAGE RULE: Detect the language of the job description. Write the entire CV in that same language.
+
+OUTPUT FORMAT — return ONLY valid JSON, no markdown, no backticks, no text before or after:
 {
+  "language": "detected language e.g. English, German, French",
   "name": "Full Name",
-  "title": "Job title applying for (optional)",
-  "email": "email (optional)",
-  "phone": "phone (optional)",
-  "location": "city, country (optional)",
+  "title": "Target job title (optional)",
+  "email": "email",
+  "phone": "phone",
+  "location": "City, Country",
   "linkedin": "linkedin url (optional)",
-  "summary": "2-3 sentence professional summary mirroring job language",
+  "summary": "2-3 sentence professional summary in the job description language, mirroring its keywords",
   "experience": [
     {
       "title": "Job Title",
-      "company": "Company Name",
-      "location": "City (optional)",
+      "company": "Company",
+      "location": "City",
       "dates": "2022 – Present",
-      "bullets": ["Strong action verb + achievement + metric", "..."]
+      "bullets": ["Action verb + achievement + metric"]
     }
   ],
   "education": [
     {
-      "degree": "Degree Name",
+      "degree": "Degree",
       "institution": "University",
-      "location": "City (optional)",
+      "location": "City",
       "dates": "2021",
       "bullets": []
     }
   ],
   "skills": {
-    "Languages": "Java, Python, SQL",
-    "Frameworks": "Spring Boot, Django",
-    "Infrastructure": "Docker, Kubernetes, AWS"
+    "Languages": "Java, Python",
+    "Frameworks": "Spring Boot"
   },
   "projects": [
     {
-      "name": "Project Name",
-      "description": "One line description (optional)",
-      "bullets": ["Achievement with metric"]
+      "name": "Project",
+      "description": "One line",
+      "bullets": ["Achievement"]
     }
   ]
 }
 
 RULES:
-- Omit any key that has no content (no empty arrays or strings)
-- Every experience bullet starts with a strong action verb
-- Quantify achievements wherever possible
-- Mirror keywords from the job description
-- skills must be an object with category keys, not an array
-- Return ONLY the JSON object. No markdown, no backticks, no explanation.`;
+- Omit keys with no content — no empty arrays or strings
+- Bullet points start with strong action verbs
+- Quantify achievements with numbers/percentages
+- Mirror exact keywords from the job description
+- Match the language of the job description throughout
+- Return ONLY the JSON object. Absolutely nothing else.`;
 
 const TOOLS = [
-  { name: 'list_documents', description: 'Lists all documents in the knowledge base. Call this first.', input_schema: { type: 'object', properties: {}, required: [] } },
-  { name: 'read_document',  description: 'Reads full content of a document by exact name.',             input_schema: { type: 'object', properties: { document_name: { type: 'string' } }, required: ['document_name'] } }
+  { name:'list_documents', description:'Lists all documents in the knowledge base. Call first.', input_schema:{type:'object',properties:{},required:[]} },
+  { name:'read_document',  description:'Reads full content of a document by exact name.',        input_schema:{type:'object',properties:{document_name:{type:'string'}},required:['document_name']} }
 ];
 
 // ── GENERATE ──
 async function startGenerate() {
   const jd = document.getElementById('job-ta').value.trim();
-  if (!jd) { alert('Please paste a job description first.'); return; }
+  if (!jd) { toast('Please paste a job description first'); return; }
   lastJobDesc = jd;
+  lastStyle   = document.getElementById('style-select').value;
 
   setBtn('gen-btn', true, '<div class="spinner"></div> Working…');
   document.getElementById('log-panel').innerHTML = '';
-  document.getElementById('feedback-area').classList.remove('show');
+  document.getElementById('feedback-bar').classList.remove('show');
   document.getElementById('hd-actions').style.display = 'none';
+  document.getElementById('match-panel').classList.remove('show');
   showState('loading', 'Reading your documents…');
 
-  const messages = [{ role: 'user', content: `Create a tailored CV for this job description:\n\n${jd}\n\nRead all my documents first, then return the CV as JSON.` }];
-  await runReActLoop(messages);
-
+  const messages = [{ role:'user', content:`Create a tailored CV for this job:\n\n${jd}\n\nRead all my documents first, then return the CV as JSON.` }];
+  try { await runReActLoop(messages); }
+  catch(e) { log('error','Error',e.message); showState('empty'); }
   setBtn('gen-btn', false, '<i class="ti ti-sparkles"></i> Generate tailored CV');
 }
 
 // ── ReAct LOOP ──
 async function runReActLoop(messages) {
   for (let i = 0; i < 14; i++) {
-    const res  = await fetch('/api/agent', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: SYS, tools: TOOLS, messages }) });
-    const data = await res.json();
-    if (data.error) { log('error', 'API Error', data.error.message || JSON.stringify(data.error)); showState('empty'); return; }
+    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:4000, system:SYS, tools:TOOLS, messages });
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
 
-    messages.push({ role: 'assistant', content: data.content });
-
+    messages.push({ role:'assistant', content:data.content });
     const toolResults = [];
     let hasTools = false;
 
     for (const blk of data.content) {
       if (blk.type === 'text' && blk.text.trim()) {
-        if (data.stop_reason === 'end_turn' && !data.content.some(b => b.type === 'tool_use')) {
-          // Final output — parse JSON
+        if (data.stop_reason === 'end_turn' && !data.content.some(b=>b.type==='tool_use')) {
           const cvJson = extractJSON(blk.text);
-          if (cvJson) { await generatePDF(cvJson); return; }
-          else { log('error', 'Parse Error', 'Could not parse CV JSON from response'); showState('empty'); return; }
-        } else {
-          log('agent', 'Reasoning', blk.text.slice(0, 180) + (blk.text.length > 180 ? '…' : ''));
-        }
+          if (!cvJson) throw new Error('Could not parse CV JSON');
+          await finalizeCVJson(cvJson);
+          return;
+        } else { log('agent','Reasoning', blk.text.slice(0,160)+(blk.text.length>160?'…':'')); }
       }
       if (blk.type === 'tool_use') {
         hasTools = true;
         let result = '';
         if (blk.name === 'list_documents') {
-          log('tool', 'list_documents', 'Fetching document list…');
-          const docs = await fetch('/api/docs').then(r => r.json());
+          log('tool','list_documents','Fetching document list…');
+          const docs = await api('GET', '/api/docs');
           result = docs.length ? `${docs.length} document(s):\n${docs.map(d=>'- '+d.name).join('\n')}` : 'No documents found.';
-          log('result', 'Documents', result);
+          log('result','Documents', result);
         } else if (blk.name === 'read_document') {
           const name = blk.input.document_name;
-          log('tool', 'read_document', `Reading "${name}"…`);
-          const r = await fetch('/api/docs/' + encodeURIComponent(name));
-          if (r.ok) { const doc = await r.json(); result = doc.content; log('result', `"${name}" loaded`, doc.content.slice(0,150)+'…'); }
-          else { result = `Document "${name}" not found.`; log('error', 'Not found', result); }
+          log('tool','read_document',`Reading "${name}"…`);
+          // Find doc by name
+          const docs = await api('GET', '/api/docs');
+          const found = docs.find(d => d.name.toLowerCase() === name.toLowerCase()) || docs.find(d => d.name.toLowerCase().includes(name.toLowerCase()));
+          if (found) {
+            const doc = await api('GET', '/api/docs/' + found.id);
+            result = doc.content || '';
+            log('result',`"${found.name}" loaded`, result.slice(0,150)+'…');
+          } else { result = `Document "${name}" not found.`; log('error','Not found', result); }
         }
-        toolResults.push({ type: 'tool_result', tool_use_id: blk.id, content: result });
+        toolResults.push({ type:'tool_result', tool_use_id:blk.id, content:result });
       }
     }
 
     if (hasTools) {
-      messages.push({ role: 'user', content: toolResults });
-      showState('loading', 'Writing your CV…');
+      messages.push({ role:'user', content:toolResults });
+      showState('loading','Writing your CV…');
     } else {
       const txt = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
       const cvJson = extractJSON(txt);
-      if (cvJson) { await generatePDF(cvJson); }
-      else { log('error', 'Parse Error', 'No valid CV JSON found'); showState('empty'); }
+      if (!cvJson) throw new Error('No valid CV JSON in response');
+      await finalizeCVJson(cvJson);
       return;
     }
   }
 }
 
+async function finalizeCVJson(cvJson) {
+  lastCVJson = cvJson;
+  showState('loading','Generating PDF…');
+  await generatePDF(cvJson, lastStyle);
+  await computeMatchScore(cvJson, lastJobDesc);
+}
+
 // ── REVISE ──
 async function reviseCV() {
-  const feedback = document.getElementById('feedback-ta').value.trim();
+  const feedback = document.getElementById('fb-ta').value.trim();
   if (!feedback || !lastCVJson) return;
 
   setBtn('revise-btn', true, '<div class="spinner"></div> Revising…');
-  showState('loading', 'Applying feedback…');
-  log('agent', 'Revision', `Feedback: "${feedback}"`);
+  showState('loading','Applying feedback…');
+  log('agent','Revision',`Feedback: "${feedback}"`);
 
-  // Fetch all docs fresh for context
   let docsContext = '';
   try {
-    const docs = await fetch('/api/docs').then(r => r.json());
+    const docs = await api('GET', '/api/docs');
     for (const d of docs) {
-      const doc = await fetch('/api/docs/' + encodeURIComponent(d.name)).then(r => r.json());
+      const doc = await api('GET', '/api/docs/' + d.id);
       docsContext += `\n\n=== ${d.name} ===\n${doc.content}`;
     }
   } catch(e) {}
 
-  const revSys = `You are a CV editor. You receive a CV as JSON, the user's source documents, and a change request. Apply the change and return the updated CV as JSON. Return ONLY the JSON object — no explanation, no markdown, no backticks, nothing else before or after.`;
-
-  const revMsg = `CURRENT CV JSON:
-${JSON.stringify(lastCVJson, null, 2)}
-
-USER SOURCE DOCUMENTS:
-${docsContext}
-
-JOB DESCRIPTION:
-${lastJobDesc}
-
-CHANGE REQUEST: ${feedback}
-
-Return the complete updated CV as a JSON object only.`;
+  const revSys = `You are a CV editor. Apply the requested change to the CV JSON and return the complete updated JSON object. Return ONLY valid JSON — no markdown, no backticks, no explanation, no text before or after.`;
+  const revMsg = `CURRENT CV JSON:\n${JSON.stringify(lastCVJson,null,2)}\n\nSOURCE DOCUMENTS:\n${docsContext}\n\nJOB DESCRIPTION:\n${lastJobDesc}\n\nCHANGE REQUEST: ${feedback}\n\nReturn the complete updated CV as JSON only.`;
 
   try {
-    const res  = await fetch('/api/agent', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: revSys, messages: [{ role: 'user', content: revMsg }] }) });
-    const data = await res.json();
-    if (data.error) { log('error', 'Error', data.error.message); showState('empty'); }
-    else {
-      const txt    = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
-      const cvJson = extractJSON(txt);
-      if (cvJson) { await generatePDF(cvJson); document.getElementById('feedback-ta').value = ''; }
-      else { log('error', 'Parse Error', 'Could not parse revised CV JSON'); showState('empty'); }
-    }
-  } catch(e) { log('error', 'Error', String(e)); showState('empty'); }
+    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:4000, system:revSys, messages:[{role:'user',content:revMsg}] });
+    if (data.error) throw new Error(data.error.message);
+    const txt    = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    const cvJson = extractJSON(txt);
+    if (!cvJson) throw new Error('Could not parse revised JSON');
+    lastCVJson = cvJson;
+    await generatePDF(cvJson, lastStyle);
+    await computeMatchScore(cvJson, lastJobDesc);
+    document.getElementById('fb-ta').value = '';
+    log('result','Revised','CV updated successfully.');
+  } catch(e) { log('error','Revision Error', e.message); showState('empty'); }
 
   setBtn('revise-btn', false, '<i class="ti ti-refresh"></i> Revise');
 }
 
 // ── PDF ──
-async function generatePDF(cvJson) {
-  lastCVJson = cvJson;
-  showState('loading', 'Generating PDF…');
-  log('tool', 'generate_pdf', 'Rendering PDF…');
+async function generatePDF(cvJson, style) {
+  log('tool','generate_pdf',`Rendering ${style} PDF…`);
   try {
-    const res  = await fetch('/api/generate-pdf', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ cv_json: cvJson }) });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    currentPdfId = data.pdf_id;
-    document.getElementById('pdf-preview').src = '/api/pdf/' + data.pdf_id;
+    const res = await fetch('/api/generate-pdf', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
+      body:JSON.stringify({ cv_json:cvJson, style })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'PDF failed'); }
+    const blob = await res.blob();
+    currentPdfBlob = blob;
+    const url = URL.createObjectURL(blob);
+    const frame = document.getElementById('pdf-frame');
+    frame.src = url;
     showState('pdf');
     document.getElementById('hd-actions').style.display = 'flex';
-    document.getElementById('feedback-area').classList.add('show');
-    log('result', 'Done', 'CV PDF ready.');
-  } catch(e) { log('error', 'PDF Error', String(e)); showState('empty'); }
+    document.getElementById('feedback-bar').classList.add('show');
+    log('result','PDF ready','CV rendered successfully.');
+  } catch(e) { log('error','PDF Error', e.message); showState('empty'); throw e; }
 }
 
 function downloadPDF() {
-  if (!currentPdfId) return;
+  if (!currentPdfBlob) return;
   const a = document.createElement('a');
-  a.href = '/api/pdf/' + currentPdfId;
+  a.href = URL.createObjectURL(currentPdfBlob);
   a.download = 'CV.pdf';
   document.body.appendChild(a); a.click(); a.remove();
 }
 
+// ── MATCH SCORE ──
+async function computeMatchScore(cvJson, jobDesc) {
+  try {
+    const prompt = `Analyse how well this CV matches the job description. Return ONLY a JSON object:
+{
+  "overall": 82,
+  "breakdown": [
+    {"label":"Skills Match","score":85,"note":"Java and Kubernetes match well; Go not mentioned"},
+    {"label":"Experience Level","score":90,"note":"4 years aligns with 3+ years required"},
+    {"label":"Keywords","score":78,"note":"Missing: agent frameworks, LLM exposure"},
+    {"label":"Education","score":80,"note":"CS degree matches requirement"}
+  ]
+}
+
+CV: ${JSON.stringify(cvJson)}
+
+Job Description: ${jobDesc}
+
+Return ONLY the JSON.`;
+    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:600, messages:[{role:'user',content:prompt}] });
+    const txt  = data.content?.filter(b=>b.type==='text').map(b=>b.text).join('').trim() || '';
+    const json = extractJSON(txt);
+    if (!json) return;
+    renderMatchScore(json);
+  } catch(e) { console.error('match score error', e); }
+}
+
+function renderMatchScore(data) {
+  const panel = document.getElementById('match-panel');
+  document.getElementById('score-num').textContent = data.overall + '%';
+
+  // Colour the circle based on score
+  const circle = document.getElementById('score-circle');
+  const col = data.overall >= 75 ? '#16a34a' : data.overall >= 55 ? '#d97706' : '#dc2626';
+  circle.style.borderColor = col;
+  document.getElementById('score-num').style.color = col;
+
+  const container = document.getElementById('breakdown-items');
+  container.innerHTML = '';
+  (data.breakdown || []).forEach(item => {
+    const col2 = item.score >= 75 ? '#16a34a' : item.score >= 55 ? '#d97706' : '#dc2626';
+    const div = document.createElement('div');
+    div.className = 'breakdown-item';
+    div.innerHTML = `
+      <div class="bi-label"><span>${esc(item.label)}</span><span style="color:${col2}">${item.score}%</span></div>
+      <div class="bi-bar"><div class="bi-fill" style="width:${item.score}%;background:${col2}"></div></div>
+      ${item.note ? `<div class="bi-note">${esc(item.note)}</div>` : ''}`;
+    container.appendChild(div);
+  });
+  panel.classList.add('show');
+}
+
+// ── HISTORY ──
+async function saveToCVHistory() {
+  if (!lastCVJson) return;
+  try {
+    const matchEl = document.getElementById('score-num');
+    const matchScore = matchEl.textContent !== '—' ? parseInt(matchEl.textContent) : null;
+    const breakdown = document.getElementById('breakdown-items').innerHTML ? lastMatchBreakdown : null;
+    await api('POST', '/api/history', { cv_json:lastCVJson, job_description:lastJobDesc, style:lastStyle, match_score:matchScore });
+    toast('CV saved to history ✓');
+  } catch(e) { toast('Save error: ' + e.message); }
+}
+let lastMatchBreakdown = null;
+
+async function loadHistory() {
+  const grid = document.getElementById('history-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text3)"><div class="mini-spinner" style="margin:0 auto 10px;"></div><p>Loading…</p></div>';
+  try {
+    const items = await api('GET', '/api/history');
+    if (!items.length) {
+      grid.innerHTML = '<div class="hist-empty" style="grid-column:1/-1;height:60vh;"><i class="ti ti-history"></i><p>No saved CVs yet</p></div>';
+      return;
+    }
+    grid.innerHTML = '';
+    items.forEach(item => {
+      const date = new Date(item.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+      const scoreColor = item.match_score >= 75 ? '#16a34a' : item.match_score >= 55 ? '#d97706' : '#dc2626';
+      const card = document.createElement('div');
+      card.className = 'hist-card';
+      card.innerHTML = `
+        <div class="hc-top">
+          <div class="hc-icon"><i class="ti ti-file-cv"></i></div>
+          <div style="flex:1;min-width:0;">
+            <div class="hc-title">${esc(item.job_title || 'Untitled Role')}</div>
+            <div class="hc-company">${esc(item.company || '')}</div>
+          </div>
+          <button class="hc-del" title="Delete" onclick="deleteHistory(event,'${item.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+        <div class="hc-meta">
+          <span class="hc-date">${date}</span>
+          <span class="hc-style">${esc(item.style || 'modern')}</span>
+          ${item.match_score ? `<span class="hc-score" style="background:${scoreColor}20;color:${scoreColor}">${item.match_score}% match</span>` : ''}
+        </div>`;
+      card.addEventListener('click', e => { if (!e.target.closest('.hc-del')) loadHistoryItem(item.id); });
+      grid.appendChild(card);
+    });
+  } catch(e) { grid.innerHTML = '<div class="hist-empty" style="grid-column:1/-1;height:60vh;"><i class="ti ti-alert-circle"></i><p>Error loading history</p></div>'; }
+}
+
+async function loadHistoryItem(id) {
+  try {
+    const item = await api('GET', '/api/history/' + id);
+    if (item.error) throw new Error(item.error);
+    lastCVJson  = item.cv_json;
+    lastJobDesc = item.job_description || '';
+    lastStyle   = item.style || 'modern';
+    document.getElementById('style-select').value = lastStyle;
+    if (lastJobDesc) document.getElementById('job-ta').value = lastJobDesc;
+    switchTab('generate');
+    showState('loading','Loading saved CV…');
+    document.getElementById('log-panel').innerHTML = '';
+    await generatePDF(item.cv_json, item.style || 'modern');
+    if (lastJobDesc) await computeMatchScore(item.cv_json, lastJobDesc);
+    toast('Loaded from history');
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+async function deleteHistory(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this saved CV?')) return;
+  try { await api('DELETE', '/api/history/' + id); loadHistory(); toast('Deleted'); }
+  catch(err) { toast('Error: ' + err.message); }
+}
+
 // ── HELPERS ──
 function extractJSON(text) {
-  // Find the outermost { ... } in the text, parse it
   const start = text.indexOf('{');
   const end   = text.lastIndexOf('}');
   if (start === -1 || end === -1) return null;
-  try { return JSON.parse(text.slice(start, end + 1)); }
-  catch(e) { console.error('JSON parse error:', e); return null; }
+  try { return JSON.parse(text.slice(start, end+1)); } catch(e) { return null; }
 }
 
 function showState(state, msg) {
-  document.getElementById('cv-empty').style.display   = state === 'empty'   ? 'flex' : 'none';
-  document.getElementById('cv-loading').style.display = state === 'loading' ? 'flex' : 'none';
-  document.getElementById('pdf-preview').classList.toggle('show', state === 'pdf');
+  document.getElementById('cv-empty').style.display   = state==='empty'   ? 'flex' : 'none';
+  document.getElementById('cv-loading').style.display = state==='loading' ? 'flex' : 'none';
+  document.getElementById('pdf-frame').classList.toggle('show', state==='pdf');
   if (msg) document.getElementById('loading-msg').textContent = msg;
 }
 
@@ -510,7 +919,8 @@ function setBtn(id, disabled, html) {
 
 function log(type, label, text) {
   const panel = document.getElementById('log-panel');
-  const icons = { tool: 'ti-tool', agent: 'ti-robot', result: 'ti-check', error: 'ti-alert-circle' };
+  panel.querySelector('.log-empty')?.remove();
+  const icons = { tool:'ti-tool', agent:'ti-robot', result:'ti-check', error:'ti-alert-circle' };
   const div = document.createElement('div');
   div.className = 'log-step';
   div.innerHTML = `<div class="log-ico ${type}"><i class="ti ${icons[type]||'ti-circle'}"></i></div><div class="log-body"><div class="llbl">${esc(label)}</div><div class="lmsg">${esc(text)}</div></div>`;
@@ -520,7 +930,14 @@ function log(type, label, text) {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-loadDocs();
+// ── INIT ──
+(async () => {
+  if (authToken) {
+    const valid = await validateToken();
+    if (valid) { showApp(); }
+    else { authToken = null; localStorage.removeItem('cv_agent_token'); }
+  }
+})();
 </script>
 </body>
 </html>
