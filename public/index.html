@@ -201,7 +201,7 @@ header h1{font-size:15px;font-weight:700}
     <div class="auth-err" id="auth-err"></div>
     <div class="auth-ok" id="auth-ok"></div>
     <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')submitAuth()"></div>
-    <div class="field"><label>Password</label><input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitAuth()"></div>
+    <div class="field"><label>Password</label><input type="password" id="auth-pass" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')submitAuth()"></div>
     <button class="auth-btn" id="auth-submit-btn" onclick="submitAuth()">Sign In</button>
   </div>
 </div>
@@ -364,6 +364,7 @@ async function submitAuth() {
   const okEl  = document.getElementById('auth-ok');
   errEl.classList.remove('show'); okEl.classList.remove('show');
   if (!email || !pass) { errEl.textContent = 'Please enter email and password.'; errEl.classList.add('show'); return; }
+  if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.classList.add('show'); return; }
   btn.disabled = true; btn.textContent = 'Please wait…';
   try {
     const endpoint = authTabMode === 'login'
