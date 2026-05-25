@@ -112,235 +112,219 @@ app.post('/api/agent', async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── PDF GENERATION ──
-function parseCVText(raw) {
-  // Strip any agent commentary — only keep content from the first real CV line
-  // CV always starts with a name (no special chars, not a sentence)
-  const lines = raw.split('\n');
-  let startIdx = 0;
-
-  // Find the first line that looks like a name or the CV header
-  // Skip lines that look like agent reasoning (contain "---", "document", "let me", etc.)
-  const agentPhrases = /let me|i have|all doc|reading|now i|here is the|tailored|summary of|key tailor|decisions|---/i;
-  for (let i = 0; i < lines.length; i++) {
-    const l = lines[i].trim();
-    if (!l) continue;
-    if (agentPhrases.test(l)) continue;
-    // Looks like a name line: 1-4 words, no punctuation except hyphens
-    if (/^[A-ZÄÖÜ][a-zA-ZäöüÄÖÜ\s\-]{1,40}$/.test(l)) { startIdx = i; break; }
-    // Or starts with a known CV section
-    if (/^(PROFESSIONAL SUMMARY|EXPERIENCE|EDUCATION|SKILLS|PROJECTS|NAME)/i.test(l)) { startIdx = i; break; }
-  }
-
-  const cvLines = lines.slice(startIdx);
-
-  // Parse into structured sections
-  const result = { name: '', contact: '', sections: [] };
-  let currentSection = null;
-  let nameFound = false;
-
-  for (const raw of cvLines) {
-    const line = raw.trimEnd();
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      if (currentSection) { result.sections.push(currentSection); currentSection = null; }
-      continue;
-    }
-
-    // Name — first non-empty line
-    if (!nameFound) {
-      result.name = trimmed.replace(/\*\*/g, '');
-      nameFound = true;
-      continue;
-    }
-
-    // Contact line — contains @ or · or |
-    if (!result.contact && (trimmed.includes('@') || trimmed.includes('·') || trimmed.includes('linkedin') || trimmed.includes('|'))) {
-      result.contact = trimmed.replace(/\*\*/g, '');
-      continue;
-    }
-
-    // Section heading — ALL CAPS or markdown ##
-    const cleanLine = trimmed.replace(/^#+\s*/, '').replace(/\*\*/g, '');
-    const isHeading = /^[A-Z][A-Z\s\/&]{3,}$/.test(cleanLine) || /^#{1,3}\s/.test(trimmed);
-    if (isHeading) {
-      if (currentSection) result.sections.push(currentSection);
-      currentSection = { heading: cleanLine, items: [] };
-      continue;
-    }
-
-    if (!currentSection) currentSection = { heading: '', items: [] };
-
-    // Sub-heading (role — company | date)
-    if (/^\*\*/.test(trimmed) || (/^[A-Z]/.test(trimmed) && (trimmed.includes('—') || trimmed.includes('–') || trimmed.includes('|')) && !trimmed.startsWith('-'))) {
-      currentSection.items.push({ type: 'role', text: cleanLine });
-      continue;
-    }
-
-    // Bullet
-    if (/^[-•*]\s/.test(trimmed)) {
-      currentSection.items.push({ type: 'bullet', text: trimmed.replace(/^[-•*]\s*/, '') });
-      continue;
-    }
-
-    // Key: value
-    const kv = trimmed.match(/^([^:]{1,28}):\s+(.+)$/);
-    if (kv) {
-      currentSection.items.push({ type: 'kv', key: kv[1].replace(/\*\*/g,''), val: kv[2] });
-      continue;
-    }
-
-    currentSection.items.push({ type: 'text', text: cleanLine });
-  }
-  if (currentSection) result.sections.push(currentSection);
-  return result;
-}
-
-app.post('/api/generate-pdf', (req, res) => {
-  const { cv_text } = req.body;
-  if (!cv_text) return res.status(400).json({ error: 'cv_text required' });
-
-  const id  = crypto.randomBytes(8).toString('hex');
-  const out = path.join(PDF_DIR, id + '.pdf');
-
-  try {
-    const cv  = parseCVText(cv_text);
+// ── PDF GENERATION FROM STRUCTURED JSON ──
+function buildPDF(cv, outputPath) {
+  return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 }, info: { Title: 'Curriculum Vitae' } });
-    const stream = fs.createWriteStream(out);
+    const stream = fs.createWriteStream(outputPath);
     doc.pipe(stream);
 
-    const PW = doc.page.width;   // 595
-    const PH = doc.page.height;  // 842
-    const ML = 52, MR = 52, MT = 0;
-    const CW = PW - ML - MR;     // content width
+    const PW = doc.page.width;
+    const PH = doc.page.height;
+    const ML = 52, MR = 52, CW = PW - ML - MR;
 
-    // ── COLOUR PALETTE ──
-    const INK      = '#1a1a2e';
-    const ACCENT   = '#1d4ed8';
-    const MID      = '#374151';
-    const MUTED    = '#6b7280';
-    const RULE     = '#e5e7eb';
-    const HDR_BG   = '#1a1a2e';
-    const HDR_TEXT = '#ffffff';
-    const HDR_SUB  = '#93c5fd';
+    // Colours
+    const INK    = '#111827';
+    const ACCENT = '#1d4ed8';
+    const MID    = '#374151';
+    const MUTED  = '#6b7280';
+    const LIGHT  = '#9ca3af';
+    const RULE   = '#e5e7eb';
+    const HDR_BG = '#0f172a';
+    const HDR_FG = '#ffffff';
+    const HDR_SB = '#93c5fd';
 
-    // ── HEADER BAND ──
-    const HDR_H = 110;
+    // Fonts
+    const FB = 'Helvetica-Bold';
+    const FR = 'Helvetica';
+
+    // ── HEADER ──
+    const HDR_H = cv.title ? 122 : 108;
     doc.rect(0, 0, PW, HDR_H).fill(HDR_BG);
-
-    // Accent side strip
     doc.rect(0, 0, 5, HDR_H).fill(ACCENT);
 
-    // Name
-    doc.font('Helvetica-Bold').fontSize(28).fillColor(HDR_TEXT)
-       .text(cv.name || 'Curriculum Vitae', ML, 28, { width: CW, lineGap: 2 });
+    let hy = 26;
+    doc.font(FB).fontSize(27).fillColor(HDR_FG)
+       .text(cv.name || 'Curriculum Vitae', ML, hy, { width: CW });
+    hy = doc.y + 2;
 
-    // Contact
-    if (cv.contact) {
-      doc.font('Helvetica').fontSize(9.5).fillColor(HDR_SUB)
-         .text(cv.contact, ML, doc.y + 6, { width: CW, lineGap: 2 });
+    if (cv.title) {
+      doc.font(FR).fontSize(11).fillColor(HDR_SB)
+         .text(cv.title, ML, hy, { width: CW });
+      hy = doc.y + 4;
     }
 
-    // ── BODY ──
-    let y = HDR_H + 28;
+    // Contact line — only include fields that exist
+    const contactParts = [cv.email, cv.phone, cv.location, cv.linkedin].filter(Boolean);
+    if (contactParts.length) {
+      doc.font(FR).fontSize(9).fillColor(HDR_SB)
+         .text(contactParts.join('  ·  '), ML, hy, { width: CW });
+    }
 
+    let y = HDR_H + 26;
+
+    // Helper: check remaining page space
     function checkPage(needed) {
-      if (y + needed > PH - 40) {
+      if (y + needed > PH - 44) {
         doc.addPage();
-        // Repeat thin accent bar on new page
         doc.rect(0, 0, 5, PH).fill(ACCENT);
         y = 36;
       }
     }
 
-    for (const sec of cv.sections) {
-      if (!sec.heading && !sec.items.length) continue;
-      checkPage(40);
+    // Helper: draw section heading
+    function sectionHeading(label) {
+      checkPage(36);
+      doc.font(FB).fontSize(7.5).fillColor(ACCENT)
+         .text(label.toUpperCase(), ML, y, { width: CW, characterSpacing: 1.5 });
+      y += 11;
+      doc.moveTo(ML, y).lineTo(ML + CW, y).strokeColor(RULE).lineWidth(0.6).stroke();
+      y += 9;
+    }
 
-      // Section heading
-      if (sec.heading) {
-        // Label
-        doc.font('Helvetica-Bold').fontSize(8).fillColor(ACCENT)
-           .text(sec.heading.toUpperCase(), ML, y, { width: CW, characterSpacing: 1.4 });
-        y += 13;
-        // Rule
-        doc.moveTo(ML, y).lineTo(ML + CW, y).strokeColor(RULE).lineWidth(0.75).stroke();
-        y += 10;
-      }
+    // Helper: bullet point
+    function bullet(text) {
+      checkPage(16);
+      doc.circle(ML + 5.5, y + 5, 1.6).fill(ACCENT);
+      doc.font(FR).fontSize(9.5).fillColor(MID)
+         .text(text, ML + 14, y, { width: CW - 14, lineGap: 1.5 });
+      y = doc.y + 3;
+    }
 
-      for (const item of sec.items) {
-        checkPage(20);
+    // ── SUMMARY ──
+    if (cv.summary) {
+      sectionHeading('Professional Summary');
+      checkPage(20);
+      doc.font(FR).fontSize(9.5).fillColor(MID)
+         .text(cv.summary, ML, y, { width: CW, lineGap: 2, align: 'justify' });
+      y = doc.y + 18;
+    }
 
-        if (item.type === 'role') {
-          // Split "Title — Company, City | Date"
-          const pipeIdx = item.text.lastIndexOf('|');
-          const dashIdx = item.text.search(/[—–]/);
-          let title = item.text, company = '', date = '';
+    // ── EXPERIENCE ──
+    if (cv.experience && cv.experience.length) {
+      sectionHeading('Experience');
+      cv.experience.forEach((role, i) => {
+        checkPage(32);
 
-          if (pipeIdx > -1) {
-            date    = item.text.slice(pipeIdx + 1).trim();
-            const left = item.text.slice(0, pipeIdx).trim();
-            const di = left.search(/[—–]/);
-            if (di > -1) { title = left.slice(0, di).trim(); company = left.slice(di + 1).trim(); }
-            else title = left;
-          } else if (dashIdx > -1) {
-            title   = item.text.slice(0, dashIdx).trim();
-            company = item.text.slice(dashIdx + 1).trim();
-          }
-
-          // Job title
-          doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK)
-             .text(title, ML, y, { width: CW * 0.68 });
-          // Date right-aligned
-          if (date) {
-            doc.font('Helvetica').fontSize(9).fillColor(MUTED)
-               .text(date, ML + CW * 0.68, y, { width: CW * 0.32, align: 'right' });
-          }
-          y = doc.y + 1;
-          // Company
-          if (company) {
-            doc.font('Helvetica').fontSize(9.5).fillColor(MID)
-               .text(company, ML, y, { width: CW });
-            y = doc.y + 4;
-          }
-
-        } else if (item.type === 'bullet') {
-          checkPage(16);
-          // Bullet dot
-          doc.circle(ML + 5, y + 4.5, 1.8).fill(ACCENT);
-          // Text
-          const bx = ML + 15;
-          doc.font('Helvetica').fontSize(9.5).fillColor(MID)
-             .text(item.text, bx, y, { width: CW - 15, lineGap: 1.5 });
-          y = doc.y + 3;
-
-        } else if (item.type === 'kv') {
-          checkPage(14);
-          doc.font('Helvetica-Bold').fontSize(9.5).fillColor(INK)
-             .text(item.key + ':', ML, y, { width: CW * 0.20, lineGap: 1 });
-          const kvY = doc.y - 13;
-          doc.font('Helvetica').fontSize(9.5).fillColor(MID)
-             .text(item.val, ML + CW * 0.22, kvY, { width: CW * 0.78, lineGap: 1 });
-          y = doc.y + 3;
-
-        } else if (item.type === 'text') {
-          checkPage(14);
-          doc.font('Helvetica').fontSize(9.5).fillColor(MID)
-             .text(item.text, ML, y, { width: CW, lineGap: 1.5 });
-          y = doc.y + 3;
+        // Role title (left) + dates (right)
+        const titleW = CW * 0.70;
+        const dateW  = CW * 0.30;
+        doc.font(FB).fontSize(10.5).fillColor(INK)
+           .text(role.title || '', ML, y, { width: titleW, lineGap: 1 });
+        if (role.dates) {
+          doc.font(FR).fontSize(9).fillColor(MUTED)
+             .text(role.dates, ML + titleW, y, { width: dateW, align: 'right' });
         }
-      }
+        y = doc.y + 1;
+
+        // Company + location
+        const compParts = [role.company, role.location].filter(Boolean).join(', ');
+        if (compParts) {
+          doc.font(FR).fontSize(9.5).fillColor(MUTED)
+             .text(compParts, ML, y, { width: CW });
+          y = doc.y + 5;
+        }
+
+        // Bullets
+        (role.bullets || []).forEach(b => bullet(b));
+
+        if (i < cv.experience.length - 1) y += 10;
+      });
       y += 16;
     }
 
+    // ── EDUCATION ──
+    if (cv.education && cv.education.length) {
+      sectionHeading('Education');
+      cv.education.forEach((edu, i) => {
+        checkPage(24);
+        doc.font(FB).fontSize(10.5).fillColor(INK)
+           .text(edu.degree || '', ML, y, { width: CW * 0.70 });
+        if (edu.dates) {
+          doc.font(FR).fontSize(9).fillColor(MUTED)
+             .text(edu.dates, ML + CW * 0.70, y, { width: CW * 0.30, align: 'right' });
+        }
+        y = doc.y + 1;
+        const instParts = [edu.institution, edu.location].filter(Boolean).join(', ');
+        if (instParts) {
+          doc.font(FR).fontSize(9.5).fillColor(MUTED)
+             .text(instParts, ML, y, { width: CW });
+          y = doc.y + 2;
+        }
+        (edu.bullets || []).forEach(b => bullet(b));
+        if (i < cv.education.length - 1) y += 8;
+      });
+      y += 16;
+    }
+
+    // ── SKILLS ──
+    if (cv.skills && Object.keys(cv.skills).length) {
+      sectionHeading('Skills');
+      Object.entries(cv.skills).forEach(([key, val]) => {
+        checkPage(14);
+        doc.font(FB).fontSize(9.5).fillColor(INK)
+           .text(key + ':', ML, y, { width: CW * 0.20, lineGap: 1 });
+        const kvY = doc.y - 13.5;
+        doc.font(FR).fontSize(9.5).fillColor(MID)
+           .text(val, ML + CW * 0.22, kvY, { width: CW * 0.78, lineGap: 1 });
+        y = doc.y + 4;
+      });
+      y += 12;
+    }
+
+    // ── PROJECTS ──
+    if (cv.projects && cv.projects.length) {
+      sectionHeading('Projects');
+      cv.projects.forEach((proj, i) => {
+        checkPage(24);
+        doc.font(FB).fontSize(10).fillColor(INK)
+           .text(proj.name || '', ML, y, { width: CW });
+        y = doc.y + 2;
+        if (proj.description) {
+          doc.font(FR).fontSize(9.5).fillColor(MID)
+             .text(proj.description, ML, y, { width: CW, lineGap: 1.5 });
+          y = doc.y + 3;
+        }
+        (proj.bullets || []).forEach(b => bullet(b));
+        if (i < cv.projects.length - 1) y += 8;
+      });
+      y += 12;
+    }
+
+    // ── EXTRA SECTIONS (anything else the AI adds) ──
+    if (cv.extra_sections && cv.extra_sections.length) {
+      cv.extra_sections.forEach(sec => {
+        sectionHeading(sec.heading || 'Additional');
+        (sec.items || []).forEach(item => {
+          checkPage(14);
+          doc.font(FR).fontSize(9.5).fillColor(MID)
+             .text(item, ML, y, { width: CW, lineGap: 1.5 });
+          y = doc.y + 3;
+        });
+        y += 12;
+      });
+    }
+
     // ── FOOTER ──
-    doc.font('Helvetica').fontSize(7.5).fillColor(RULE)
-       .text('Curriculum Vitae', 0, PH - 24, { width: PW, align: 'center' });
+    doc.font(FR).fontSize(7).fillColor(LIGHT)
+       .text('Generated by CV Agent', 0, PH - 22, { width: PW, align: 'center' });
 
     doc.end();
-    stream.on('finish', () => res.json({ pdf_id: id }));
-    stream.on('error',  e  => res.status(500).json({ error: e.message }));
+    stream.on('finish', resolve);
+    stream.on('error', reject);
+  });
+}
+
+app.post('/api/generate-pdf', async (req, res) => {
+  const { cv_json } = req.body;
+  if (!cv_json) return res.status(400).json({ error: 'cv_json required' });
+
+  const id  = crypto.randomBytes(8).toString('hex');
+  const out = path.join(PDF_DIR, id + '.pdf');
+
+  try {
+    await buildPDF(cv_json, out);
+    res.json({ pdf_id: id });
   } catch(e) {
     console.error('PDF error:', e);
     res.status(500).json({ error: e.message });

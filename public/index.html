@@ -11,7 +11,7 @@
   --bg: #f5f5f4; --surface: #fff; --surface2: #f2f1ef;
   --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
   --text: #1c1c1e; --text2: #636366; --text3: #aeaeb2;
-  --accent: #2563eb; --accent-bg: #eff6ff;
+  --accent: #1d4ed8; --accent-bg: #eff6ff;
   --success: #16a34a; --success-bg: #f0fdf4;
   --warn: #d97706; --warn-bg: #fffbeb;
   --danger: #dc2626; --danger-bg: #fef2f2;
@@ -19,33 +19,31 @@
 }
 html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
 
-/* HEADER */
-header { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; gap: 10px; flex-shrink: 0; position: relative; z-index: 10; }
-header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+header { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.25rem; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+header h1 { font-size: 15px; font-weight: 700; }
 .tabs { margin-left: auto; display: flex; gap: 3px; }
-.tab { padding: 6px 14px; border-radius: var(--r); font-size: 13px; cursor: pointer; color: var(--text2); border: none; background: none; display: flex; align-items: center; gap: 6px; font-weight: 500; transition: all 0.12s; }
+.tab { padding: 6px 14px; border-radius: var(--r); font-size: 13px; cursor: pointer; color: var(--text2); border: none; background: none; display: flex; align-items: center; gap: 6px; font-weight: 500; }
 .tab:hover { background: var(--surface2); color: var(--text); }
 .tab.active { background: var(--accent); color: #fff; }
 
-/* LAYOUT */
 .app-body { display: flex; flex: 1; height: calc(100vh - 52px); overflow: hidden; }
 .view { display: none; flex: 1; overflow: hidden; }
 .view.active { display: flex; }
 
-/* ══ DOCS TAB ══ */
+/* DOCS */
 #view-docs { flex-direction: row; }
 .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
 .sidebar-hd { padding: 12px 12px 8px; }
 .sidebar-hd span { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
 .doc-list { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
-.doc-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r); cursor: pointer; border: 1px solid transparent; transition: all 0.1s; }
+.doc-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r); cursor: pointer; border: 1px solid transparent; }
 .doc-item:hover { background: var(--surface2); }
-.doc-item.active { background: var(--accent-bg); border-color: rgba(37,99,235,0.2); }
-.doc-item .dname { flex: 1; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.doc-item.active { background: var(--accent-bg); border-color: rgba(29,78,216,0.2); }
+.doc-item .dname { flex: 1; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .doc-item.active .dname { color: var(--accent); }
-.doc-item .dchars { font-size: 11px; color: var(--text3); }
 .doc-item i.ti-file-text { font-size: 14px; color: var(--text3); flex-shrink: 0; }
 .doc-item.active i.ti-file-text { color: var(--accent); }
+.doc-item .dchars { font-size: 11px; color: var(--text3); }
 .ddel { opacity: 0; background: none; border: none; cursor: pointer; padding: 3px; border-radius: 5px; font-size: 13px; color: var(--text3); flex-shrink: 0; }
 .doc-item:hover .ddel { opacity: 1; }
 .ddel:hover { color: var(--danger); background: var(--danger-bg); }
@@ -53,7 +51,7 @@ header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 .ninput { flex: 1; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); }
 .ninput:focus { outline: none; border-color: var(--accent); }
 .abtn { padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); cursor: pointer; font-size: 14px; color: var(--text2); }
-.abtn:hover { background: var(--surface); color: var(--text); }
+.abtn:hover { background: var(--surface); }
 
 .editor { flex: 1; display: flex; flex-direction: column; background: var(--surface); }
 .editor-hd { height: 46px; border-bottom: 1px solid var(--border); padding: 0 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
@@ -66,66 +64,54 @@ header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 .doc-empty i { font-size: 32px; }
 .doc-empty p { font-size: 13px; }
 
-/* ══ AGENT TAB ══ */
+/* AGENT */
 #view-agent { flex-direction: column; }
-
 .agent-top { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 1.25rem; flex-shrink: 0; }
 .agent-top label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 8px; }
 .job-ta { width: 100%; height: 90px; border: 1px solid var(--border2); border-radius: var(--r-lg); padding: 10px 12px; font-size: 13px; line-height: 1.6; resize: none; background: var(--surface2); color: var(--text); font-family: inherit; }
 .job-ta:focus { outline: none; border-color: var(--accent); }
-.gen-btn { margin-top: 10px; padding: 9px 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.15s; }
+.gen-btn { margin-top: 10px; padding: 9px 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
 .gen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.gen-btn:not(:disabled):hover { opacity: 0.88; }
 
 .agent-main { flex: 1; display: flex; overflow: hidden; }
 
-/* Log panel */
-.log-panel { width: 280px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+.log-panel { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
 .log-step { display: flex; gap: 8px; }
 .log-ico { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; margin-top: 1px; }
-.log-ico.tool   { background: var(--warn-bg);    color: var(--warn); }
-.log-ico.agent  { background: var(--accent-bg);  color: var(--accent); }
+.log-ico.tool   { background: var(--warn-bg); color: var(--warn); }
+.log-ico.agent  { background: var(--accent-bg); color: var(--accent); }
 .log-ico.result { background: var(--success-bg); color: var(--success); }
-.log-ico.error  { background: var(--danger-bg);  color: var(--danger); }
+.log-ico.error  { background: var(--danger-bg); color: var(--danger); }
 .log-body .llbl { font-size: 9px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
 .log-body .lmsg { font-size: 11.5px; line-height: 1.5; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; white-space: pre-wrap; word-break: break-word; }
 .log-empty { text-align: center; color: var(--text3); padding: 2rem 1rem; }
 .log-empty i { font-size: 24px; display: block; margin-bottom: 8px; opacity: 0.35; }
 .log-empty p { font-size: 12px; line-height: 1.5; }
 
-/* CV output panel */
 .cv-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .cv-panel-hd { height: 46px; border-bottom: 1px solid var(--border); padding: 0 1.25rem; background: var(--surface); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .cv-panel-hd span { font-size: 13px; font-weight: 600; color: var(--text2); }
-.hd-actions { margin-left: auto; display: flex; gap: 6px; }
-.hd-btn { padding: 5px 12px; font-size: 12px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 5px; font-weight: 500; transition: all 0.12s; }
-.hd-btn:hover { background: var(--surface); color: var(--text); border-color: var(--border2); }
-.hd-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.hd-btn.primary:hover { opacity: 0.88; }
-.hd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.hd-actions { margin-left: auto; display: none; gap: 6px; }
+.hd-btn { padding: 5px 12px; font-size: 12px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 5px; font-weight: 500; }
+.hd-btn:hover { background: var(--surface); color: var(--text); }
 
 .cv-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-/* PDF preview */
 .pdf-preview { flex: 1; border: none; display: none; background: #525659; }
 .pdf-preview.show { display: block; }
-
-/* Empty / loading states */
 .cv-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text3); }
 .cv-empty i { font-size: 40px; opacity: 0.25; }
 .cv-empty p { font-size: 14px; }
-.cv-loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--text2); display: none; }
+.cv-loading { flex: 1; align-items: center; justify-content: center; gap: 14px; color: var(--text2); display: none; flex-direction: column; }
 .cv-loading .big-spinner { width: 36px; height: 36px; border: 3px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 .cv-loading p { font-size: 13px; }
 
-/* Feedback area */
 .feedback-area { border-top: 1px solid var(--border); padding: 12px 1.25rem; background: var(--surface); flex-shrink: 0; display: none; }
 .feedback-area.show { display: block; }
 .feedback-area label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 6px; }
 .feedback-row { display: flex; gap: 8px; }
-.feedback-ta { flex: 1; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); resize: none; height: 60px; font-family: inherit; line-height: 1.5; }
+.feedback-ta { flex: 1; padding: 8px 12px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--r); background: var(--surface2); color: var(--text); resize: none; height: 56px; font-family: inherit; line-height: 1.5; }
 .feedback-ta:focus { outline: none; border-color: var(--accent); }
-.revise-btn { padding: 8px 16px; background: var(--text); color: #fff; border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; align-self: flex-end; transition: opacity 0.15s; white-space: nowrap; }
+.revise-btn { padding: 8px 16px; background: var(--text); color: #fff; border: none; border-radius: var(--r); font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; align-self: flex-end; white-space: nowrap; }
 .revise-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
@@ -135,7 +121,7 @@ header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 <body>
 
 <header>
-  <i class="ti ti-file-cv" style="font-size:20px;color:#2563eb;"></i>
+  <i class="ti ti-file-cv" style="font-size:20px;color:#1d4ed8;"></i>
   <h1>CV Agent</h1>
   <div class="tabs">
     <button class="tab active" id="tab-docs" onclick="switchTab('docs')"><i class="ti ti-files"></i> My Docs</button>
@@ -144,8 +130,6 @@ header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 </header>
 
 <div class="app-body">
-
-  <!-- ══ DOCS TAB ══ -->
   <div class="view active" id="view-docs">
     <div class="sidebar">
       <div class="sidebar-hd"><span>Documents</span></div>
@@ -163,62 +147,55 @@ header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
           <input class="title-in" id="title-in" placeholder="Document name" oninput="onTitleChange(this.value)">
           <span class="saved-badge" id="saved-badge">Saved ✓</span>
         </div>
-        <textarea id="doc-ta" oninput="onContentChange(this.value)"
-          placeholder="Paste your CV, skills, experience, projects, or any info you want the agent to know about you…"></textarea>
+        <textarea id="doc-ta" oninput="onContentChange(this.value)" placeholder="Paste your CV, skills, experience, projects…"></textarea>
       </div>
     </div>
   </div>
 
-  <!-- ══ AGENT TAB ══ -->
   <div class="view" id="view-agent">
     <div class="agent-top">
       <label>Job Description</label>
-      <textarea class="job-ta" id="job-ta" placeholder="Paste the full job description here. The agent will read your documents and write a professionally formatted CV tailored to this role…"></textarea>
+      <textarea class="job-ta" id="job-ta" placeholder="Paste the full job description here…"></textarea>
       <button class="gen-btn" id="gen-btn" onclick="startGenerate()"><i class="ti ti-sparkles"></i> Generate tailored CV</button>
     </div>
-
     <div class="agent-main">
-      <!-- Step log -->
       <div class="log-panel" id="log-panel">
-        <div class="log-empty" id="log-empty"><i class="ti ti-activity"></i><p>Agent steps appear here while it reads your documents</p></div>
+        <div class="log-empty"><i class="ti ti-activity"></i><p>Agent steps appear here</p></div>
       </div>
-
-      <!-- CV output -->
       <div class="cv-panel">
         <div class="cv-panel-hd">
-          <i class="ti ti-file-check" style="font-size:15px;color:#2563eb;"></i>
+          <i class="ti ti-file-check" style="font-size:15px;color:#1d4ed8;"></i>
           <span>Generated CV</span>
-          <div class="hd-actions" id="hd-actions" style="display:none;">
-            <a class="hd-btn" id="download-btn" href="#" download="CV.pdf"><i class="ti ti-download"></i> Download PDF</a>
+          <div class="hd-actions" id="hd-actions">
+            <button class="hd-btn" id="download-btn" onclick="downloadPDF()"><i class="ti ti-download"></i> Download PDF</button>
           </div>
         </div>
         <div class="cv-body">
-          <div class="cv-empty" id="cv-empty"><i class="ti ti-file-description"></i><p>Your tailored CV will appear here as a PDF preview</p></div>
-          <div class="cv-loading" id="cv-loading"><div class="big-spinner"></div><p id="loading-msg">Generating PDF…</p></div>
+          <div class="cv-empty" id="cv-empty"><i class="ti ti-file-description"></i><p>Your tailored CV will appear here</p></div>
+          <div class="cv-loading" id="cv-loading"><div class="big-spinner"></div><p id="loading-msg">Working…</p></div>
           <iframe class="pdf-preview" id="pdf-preview" title="CV Preview"></iframe>
         </div>
         <div class="feedback-area" id="feedback-area">
-          <label><i class="ti ti-message-2"></i> Feedback — what should be changed?</label>
+          <label><i class="ti ti-message-2"></i> Feedback</label>
           <div class="feedback-row">
-            <textarea class="feedback-ta" id="feedback-ta" placeholder="e.g. Make the summary shorter, add more emphasis on leadership, remove the Projects section…"></textarea>
+            <textarea class="feedback-ta" id="feedback-ta" placeholder="e.g. Shorten the summary, emphasise leadership more, remove the Projects section…"></textarea>
             <button class="revise-btn" id="revise-btn" onclick="reviseCV()"><i class="ti ti-refresh"></i> Revise</button>
           </div>
         </div>
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
-// ══ STATE ══
-let currentDoc   = null;
-let saveTimer    = null;
-let renameTimer  = null;
-let lastCVText   = '';       // keep CV text for revision
-let lastMessages = [];       // keep conversation for revision
+let currentDoc  = null;
+let saveTimer   = null;
+let renameTimer = null;
+let lastCVJson  = null;   // structured JSON from last generation
+let lastJobDesc = '';
+let currentPdfId = null;
 
-// ══ TABS ══
+// ── TABS ──
 function switchTab(t) {
   ['docs','agent'].forEach(id => {
     document.getElementById('tab-'+id).classList.toggle('active', id===t);
@@ -226,16 +203,13 @@ function switchTab(t) {
   });
 }
 
-// ══ DOCS ══
+// ── DOCS ──
 async function loadDocs() {
   try {
     const docs = await fetch('/api/docs').then(r => r.json());
     const list = document.getElementById('doc-list');
     list.innerHTML = '';
-    if (!docs.length) {
-      list.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center;">No documents yet</div>';
-      return;
-    }
+    if (!docs.length) { list.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3);text-align:center;">No documents yet</div>'; return; }
     docs.forEach(doc => {
       const el = document.createElement('div');
       el.className = 'doc-item' + (doc.name === currentDoc ? ' active' : '');
@@ -252,8 +226,7 @@ async function selectDoc(name) {
     const doc = await fetch('/api/docs/' + encodeURIComponent(name)).then(r => r.json());
     currentDoc = name;
     document.getElementById('doc-empty').style.display = 'none';
-    const inner = document.getElementById('editor-inner');
-    inner.style.display = 'flex';
+    document.getElementById('editor-inner').style.display = 'flex';
     document.getElementById('title-in').value = doc.name;
     document.getElementById('doc-ta').value   = doc.content;
     loadDocs();
@@ -264,12 +237,8 @@ function onTitleChange(val) {
   clearTimeout(renameTimer);
   renameTimer = setTimeout(async () => {
     if (!currentDoc || !val.trim() || val.trim() === currentDoc) return;
-    await fetch('/api/docs/' + encodeURIComponent(currentDoc) + '/rename', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ newName: val.trim() })
-    });
-    currentDoc = val.trim();
-    flashSaved(); loadDocs();
+    await fetch('/api/docs/' + encodeURIComponent(currentDoc) + '/rename', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ newName: val.trim() }) });
+    currentDoc = val.trim(); flashSaved(); loadDocs();
   }, 800);
 }
 
@@ -277,257 +246,272 @@ function onContentChange(val) {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     if (!currentDoc) return;
-    await fetch('/api/docs/' + encodeURIComponent(currentDoc), {
-      method: 'PUT', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ content: val })
-    });
+    await fetch('/api/docs/' + encodeURIComponent(currentDoc), { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ content: val }) });
     flashSaved(); loadDocs();
   }, 600);
 }
 
 async function addDoc() {
-  const inp  = document.getElementById('new-name');
+  const inp = document.getElementById('new-name');
   const name = inp.value.trim() || 'Untitled';
-  inp.value  = '';
-  await fetch('/api/docs/' + encodeURIComponent(name), {
-    method: 'PUT', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ content: '' })
-  });
-  await loadDocs();
-  selectDoc(name);
+  inp.value = '';
+  await fetch('/api/docs/' + encodeURIComponent(name), { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ content: '' }) });
+  await loadDocs(); selectDoc(name);
 }
 
 async function deleteDoc(name) {
   if (!confirm(`Delete "${name}"?`)) return;
   await fetch('/api/docs/' + encodeURIComponent(name), { method: 'DELETE' });
-  if (currentDoc === name) {
-    currentDoc = null;
-    document.getElementById('editor-inner').style.display = 'none';
-    document.getElementById('doc-empty').style.display    = 'flex';
-  }
+  if (currentDoc === name) { currentDoc = null; document.getElementById('editor-inner').style.display = 'none'; document.getElementById('doc-empty').style.display = 'flex'; }
   loadDocs();
 }
 
 function flashSaved() {
   const b = document.getElementById('saved-badge');
-  b.classList.add('show');
-  clearTimeout(b._t);
+  b.classList.add('show'); clearTimeout(b._t);
   b._t = setTimeout(() => b.classList.remove('show'), 1800);
 }
 
-// ══ AGENT ══
-const SYS = `You are an expert CV writer producing corporate-standard CVs for competitive job applications.
+// ── AGENT SYSTEM PROMPT ──
+// The agent uses ReAct: reasons about what docs to read, acts by calling tools,
+// then outputs structured JSON — no free text, no commentary possible
+const SYS = `You are an expert CV writer. You help users create tailored, corporate-standard CVs.
 
-Your process:
-1. Call list_documents — see what's available
-2. Call read_document for EVERY document — read all user info
-3. Analyse the job description: required skills, keywords, seniority, company tone
-4. Write a clean, professional CV in plain text following this EXACT structure:
+PROCESS (ReAct loop):
+1. REASON: Think about what documents you need to read
+2. ACT: Call list_documents to see available docs
+3. ACT: Call read_document for each relevant document
+4. REASON: Analyse the job description — required skills, keywords, seniority, tone
+5. OUTPUT: Return a single JSON object and nothing else
 
-[Full Name]
-[Email] · [Phone] · [Location] · [LinkedIn if available]
+OUTPUT FORMAT — return ONLY this JSON, no other text before or after:
+{
+  "name": "Full Name",
+  "title": "Job title applying for (optional)",
+  "email": "email (optional)",
+  "phone": "phone (optional)",
+  "location": "city, country (optional)",
+  "linkedin": "linkedin url (optional)",
+  "summary": "2-3 sentence professional summary mirroring job language",
+  "experience": [
+    {
+      "title": "Job Title",
+      "company": "Company Name",
+      "location": "City (optional)",
+      "dates": "2022 – Present",
+      "bullets": ["Strong action verb + achievement + metric", "..."]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Degree Name",
+      "institution": "University",
+      "location": "City (optional)",
+      "dates": "2021",
+      "bullets": []
+    }
+  ],
+  "skills": {
+    "Languages": "Java, Python, SQL",
+    "Frameworks": "Spring Boot, Django",
+    "Infrastructure": "Docker, Kubernetes, AWS"
+  },
+  "projects": [
+    {
+      "name": "Project Name",
+      "description": "One line description (optional)",
+      "bullets": ["Achievement with metric"]
+    }
+  ]
+}
 
-PROFESSIONAL SUMMARY
-2–3 sentences. Mirror the job's language. Lead with years of experience and most relevant skills.
-
-EXPERIENCE
-[Job Title] — [Company], [City] | [Start] – [End]
-- Achievement bullet with metric
-- Achievement bullet with metric
-
-[Repeat for each role, newest first]
-
-EDUCATION
-[Degree] — [University] | [Year]
-
-SKILLS
-Languages: ...
-Frameworks: ...
-Infrastructure: ...
-Databases: ...
-[Other relevant categories]
-
-PROJECTS (if relevant)
-[Project Name]
-- Description with impact metric
-
-Rules:
-- Every bullet must start with a strong action verb
-- Quantify achievements wherever possible (%, numbers, scale)
-- Mirror keywords from the job description exactly
-- Keep total length to 1–2 pages worth of content
-- No photos, no graphics descriptions, no tables — clean plain text only
-- Do NOT include markdown formatting symbols like ** or ## in the output
-- CRITICAL: Output ONLY the CV. No preamble, no "Here is the CV", no commentary, no notes, no explanation. The very first line must be the candidate name. Nothing before or after the CV content.`;
+RULES:
+- Omit any key that has no content (no empty arrays or strings)
+- Every experience bullet starts with a strong action verb
+- Quantify achievements wherever possible
+- Mirror keywords from the job description
+- skills must be an object with category keys, not an array
+- Return ONLY the JSON object. No markdown, no backticks, no explanation.`;
 
 const TOOLS = [
-  { name: 'list_documents', description: 'Lists all documents in the knowledge base.', input_schema: { type: 'object', properties: {}, required: [] } },
-  { name: 'read_document',  description: 'Reads a document by exact name.',            input_schema: { type: 'object', properties: { document_name: { type: 'string' } }, required: ['document_name'] } }
+  { name: 'list_documents', description: 'Lists all documents in the knowledge base. Call this first.', input_schema: { type: 'object', properties: {}, required: [] } },
+  { name: 'read_document',  description: 'Reads full content of a document by exact name.',             input_schema: { type: 'object', properties: { document_name: { type: 'string' } }, required: ['document_name'] } }
 ];
 
+// ── GENERATE ──
 async function startGenerate() {
   const jd = document.getElementById('job-ta').value.trim();
   if (!jd) { alert('Please paste a job description first.'); return; }
+  lastJobDesc = jd;
 
-  setGenerating(true);
+  setBtn('gen-btn', true, '<div class="spinner"></div> Working…');
   document.getElementById('log-panel').innerHTML = '';
-  document.getElementById('log-empty')?.remove();
-
-  showCVState('loading', 'Reading your documents…');
   document.getElementById('feedback-area').classList.remove('show');
   document.getElementById('hd-actions').style.display = 'none';
+  showState('loading', 'Reading your documents…');
 
-  lastMessages = [{ role: 'user', content: `Create a tailored CV for this job:\n\n${jd}\n\nRead ALL my documents first, then write the CV.` }];
-  lastCVText   = '';
+  const messages = [{ role: 'user', content: `Create a tailored CV for this job description:\n\n${jd}\n\nRead all my documents first, then return the CV as JSON.` }];
+  await runReActLoop(messages);
 
-  await runAgentLoop(lastMessages);
-  setGenerating(false);
+  setBtn('gen-btn', false, '<i class="ti ti-sparkles"></i> Generate tailored CV');
 }
 
-async function reviseCV() {
-  const feedback = document.getElementById('feedback-ta').value.trim();
-  if (!feedback) { alert('Please enter your feedback first.'); return; }
+// ── ReAct LOOP ──
+async function runReActLoop(messages) {
+  for (let i = 0; i < 14; i++) {
+    const res  = await fetch('/api/agent', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: SYS, tools: TOOLS, messages }) });
+    const data = await res.json();
+    if (data.error) { log('error', 'API Error', data.error.message || JSON.stringify(data.error)); showState('empty'); return; }
 
-  const btn = document.getElementById('revise-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<div class="spinner"></div> Revising…';
+    messages.push({ role: 'assistant', content: data.content });
 
-  showCVState('loading', 'Revising CV…');
+    const toolResults = [];
+    let hasTools = false;
 
-  // Add feedback to conversation and re-run
-  lastMessages.push({ role: 'user', content: `Please revise the CV based on this feedback:\n\n${feedback}\n\nKeep the same format and structure, just apply the requested changes.` });
-  await runAgentLoop(lastMessages);
-
-  document.getElementById('feedback-ta').value = '';
-  btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-refresh"></i> Revise';
-}
-
-async function runAgentLoop(messages) {
-  try {
-    for (let i = 0; i < 14; i++) {
-      const res  = await fetch('/api/agent', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: SYS, tools: TOOLS, messages })
-      });
-      const data = await res.json();
-      if (data.error) { log('error', 'API Error', data.error.message || JSON.stringify(data.error)); showCVState('empty'); return; }
-
-      messages.push({ role: 'assistant', content: data.content });
-
-      const toolResults = [];
-      let   hasTools    = false;
-
-      for (const blk of data.content) {
-        if (blk.type === 'text' && blk.text.trim()) {
-          if (data.stop_reason === 'end_turn' && !data.content.some(b => b.type === 'tool_use')) {
-            lastCVText   = blk.text;
-            lastMessages = messages;
-            await generatePDF(blk.text);
-            return;
-          } else {
-            log('agent', 'Thinking', blk.text.slice(0, 200) + (blk.text.length > 200 ? '…' : ''));
-          }
-        }
-        if (blk.type === 'tool_use') {
-          hasTools = true;
-          let result = '';
-          if (blk.name === 'list_documents') {
-            log('tool', 'list_documents', 'Fetching document list…');
-            const docs = await fetch('/api/docs').then(r => r.json());
-            result = docs.length ? `${docs.length} document(s):\n${docs.map(d=>'- '+d.name).join('\n')}` : 'No documents found.';
-            log('result', 'Documents', result);
-          } else if (blk.name === 'read_document') {
-            const name = blk.input.document_name;
-            log('tool', 'read_document', `Reading "${name}"…`);
-            const r = await fetch('/api/docs/' + encodeURIComponent(name));
-            if (r.ok) {
-              const doc = await r.json();
-              result = doc.content;
-              log('result', `"${name}" loaded`, doc.content.slice(0,180)+'…');
-            } else {
-              result = `Document "${name}" not found.`;
-              log('error', 'Not found', result);
-            }
-          }
-          toolResults.push({ type: 'tool_result', tool_use_id: blk.id, content: result });
+    for (const blk of data.content) {
+      if (blk.type === 'text' && blk.text.trim()) {
+        if (data.stop_reason === 'end_turn' && !data.content.some(b => b.type === 'tool_use')) {
+          // Final output — parse JSON
+          const cvJson = extractJSON(blk.text);
+          if (cvJson) { await generatePDF(cvJson); return; }
+          else { log('error', 'Parse Error', 'Could not parse CV JSON from response'); showState('empty'); return; }
+        } else {
+          log('agent', 'Reasoning', blk.text.slice(0, 180) + (blk.text.length > 180 ? '…' : ''));
         }
       }
-
-      if (hasTools) {
-        messages.push({ role: 'user', content: toolResults });
-        showCVState('loading', 'Writing your CV…');
-      } else {
-        const txt = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
-        if (txt) { lastCVText = txt; lastMessages = messages; await generatePDF(txt); }
-        return;
+      if (blk.type === 'tool_use') {
+        hasTools = true;
+        let result = '';
+        if (blk.name === 'list_documents') {
+          log('tool', 'list_documents', 'Fetching document list…');
+          const docs = await fetch('/api/docs').then(r => r.json());
+          result = docs.length ? `${docs.length} document(s):\n${docs.map(d=>'- '+d.name).join('\n')}` : 'No documents found.';
+          log('result', 'Documents', result);
+        } else if (blk.name === 'read_document') {
+          const name = blk.input.document_name;
+          log('tool', 'read_document', `Reading "${name}"…`);
+          const r = await fetch('/api/docs/' + encodeURIComponent(name));
+          if (r.ok) { const doc = await r.json(); result = doc.content; log('result', `"${name}" loaded`, doc.content.slice(0,150)+'…'); }
+          else { result = `Document "${name}" not found.`; log('error', 'Not found', result); }
+        }
+        toolResults.push({ type: 'tool_result', tool_use_id: blk.id, content: result });
       }
     }
-  } catch(e) {
-    log('error', 'Error', String(e));
-    showCVState('empty');
+
+    if (hasTools) {
+      messages.push({ role: 'user', content: toolResults });
+      showState('loading', 'Writing your CV…');
+    } else {
+      const txt = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+      const cvJson = extractJSON(txt);
+      if (cvJson) { await generatePDF(cvJson); }
+      else { log('error', 'Parse Error', 'No valid CV JSON found'); showState('empty'); }
+      return;
+    }
   }
 }
 
-async function generatePDF(cvText) {
-  showCVState('loading', 'Generating PDF…');
-  log('tool', 'generate_pdf', 'Converting CV to formatted PDF…');
+// ── REVISE ──
+async function reviseCV() {
+  const feedback = document.getElementById('feedback-ta').value.trim();
+  if (!feedback || !lastCVJson) return;
+
+  setBtn('revise-btn', true, '<div class="spinner"></div> Revising…');
+  showState('loading', 'Applying feedback…');
+  log('agent', 'Revision', `Feedback: "${feedback}"`);
+
+  // Fetch all docs fresh for context
+  let docsContext = '';
   try {
-    const res  = await fetch('/api/generate-pdf', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ cv_text: cvText })
-    });
+    const docs = await fetch('/api/docs').then(r => r.json());
+    for (const d of docs) {
+      const doc = await fetch('/api/docs/' + encodeURIComponent(d.name)).then(r => r.json());
+      docsContext += `\n\n=== ${d.name} ===\n${doc.content}`;
+    }
+  } catch(e) {}
+
+  const revSys = `You are a CV editor. You receive a CV as JSON, the user's source documents, and a change request. Apply the change and return the updated CV as JSON. Return ONLY the JSON object — no explanation, no markdown, no backticks, nothing else before or after.`;
+
+  const revMsg = `CURRENT CV JSON:
+${JSON.stringify(lastCVJson, null, 2)}
+
+USER SOURCE DOCUMENTS:
+${docsContext}
+
+JOB DESCRIPTION:
+${lastJobDesc}
+
+CHANGE REQUEST: ${feedback}
+
+Return the complete updated CV as a JSON object only.`;
+
+  try {
+    const res  = await fetch('/api/agent', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: revSys, messages: [{ role: 'user', content: revMsg }] }) });
+    const data = await res.json();
+    if (data.error) { log('error', 'Error', data.error.message); showState('empty'); }
+    else {
+      const txt    = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+      const cvJson = extractJSON(txt);
+      if (cvJson) { await generatePDF(cvJson); document.getElementById('feedback-ta').value = ''; }
+      else { log('error', 'Parse Error', 'Could not parse revised CV JSON'); showState('empty'); }
+    }
+  } catch(e) { log('error', 'Error', String(e)); showState('empty'); }
+
+  setBtn('revise-btn', false, '<i class="ti ti-refresh"></i> Revise');
+}
+
+// ── PDF ──
+async function generatePDF(cvJson) {
+  lastCVJson = cvJson;
+  showState('loading', 'Generating PDF…');
+  log('tool', 'generate_pdf', 'Rendering PDF…');
+  try {
+    const res  = await fetch('/api/generate-pdf', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ cv_json: cvJson }) });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-
-    const pdfUrl = '/api/pdf/' + data.pdf_id;
-    log('result', 'PDF ready', 'Corporate CV generated successfully.');
-
-    // Show preview
-    const iframe = document.getElementById('pdf-preview');
-    iframe.src   = pdfUrl;
-    showCVState('pdf');
-
-    // Download button
-    const dlBtn = document.getElementById('download-btn');
-    dlBtn.href  = pdfUrl + '?download=1';
-    dlBtn.setAttribute('download', 'CV.pdf');
+    currentPdfId = data.pdf_id;
+    document.getElementById('pdf-preview').src = '/api/pdf/' + data.pdf_id;
+    showState('pdf');
     document.getElementById('hd-actions').style.display = 'flex';
-
-    // Show feedback area
     document.getElementById('feedback-area').classList.add('show');
-  } catch(e) {
-    log('error', 'PDF Error', String(e));
-    showCVState('empty');
-  }
+    log('result', 'Done', 'CV PDF ready.');
+  } catch(e) { log('error', 'PDF Error', String(e)); showState('empty'); }
 }
 
-// Update download to force download
-document.getElementById('download-btn')?.addEventListener('click', function(e) {
-  e.preventDefault();
+function downloadPDF() {
+  if (!currentPdfId) return;
   const a = document.createElement('a');
-  a.href     = this.href;
+  a.href = '/api/pdf/' + currentPdfId;
   a.download = 'CV.pdf';
-  a.click();
-});
+  document.body.appendChild(a); a.click(); a.remove();
+}
 
-function showCVState(state, msg) {
+// ── HELPERS ──
+function extractJSON(text) {
+  // Find the outermost { ... } in the text, parse it
+  const start = text.indexOf('{');
+  const end   = text.lastIndexOf('}');
+  if (start === -1 || end === -1) return null;
+  try { return JSON.parse(text.slice(start, end + 1)); }
+  catch(e) { console.error('JSON parse error:', e); return null; }
+}
+
+function showState(state, msg) {
   document.getElementById('cv-empty').style.display   = state === 'empty'   ? 'flex' : 'none';
   document.getElementById('cv-loading').style.display = state === 'loading' ? 'flex' : 'none';
   document.getElementById('pdf-preview').classList.toggle('show', state === 'pdf');
   if (msg) document.getElementById('loading-msg').textContent = msg;
 }
 
-function setGenerating(on) {
-  const btn = document.getElementById('gen-btn');
-  btn.disabled = on;
-  btn.innerHTML = on ? '<div class="spinner"></div> Working…' : '<i class="ti ti-sparkles"></i> Generate tailored CV';
+function setBtn(id, disabled, html) {
+  const b = document.getElementById(id);
+  b.disabled = disabled; b.innerHTML = html;
 }
 
 function log(type, label, text) {
   const panel = document.getElementById('log-panel');
   const icons = { tool: 'ti-tool', agent: 'ti-robot', result: 'ti-check', error: 'ti-alert-circle' };
-  const div   = document.createElement('div');
+  const div = document.createElement('div');
   div.className = 'log-step';
   div.innerHTML = `<div class="log-ico ${type}"><i class="ti ${icons[type]||'ti-circle'}"></i></div><div class="log-body"><div class="llbl">${esc(label)}</div><div class="lmsg">${esc(text)}</div></div>`;
   panel.appendChild(div);
@@ -535,15 +519,6 @@ function log(type, label, text) {
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// Download link fix
-document.addEventListener('click', e => {
-  const btn = e.target.closest('#download-btn');
-  if (!btn) return;
-  e.preventDefault();
-  const a = document.createElement('a');
-  a.href = btn.href; a.download = 'CV.pdf'; document.body.appendChild(a); a.click(); a.remove();
-});
 
 loadDocs();
 </script>
