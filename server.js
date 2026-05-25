@@ -13,7 +13,6 @@ const DOCS_DIR = path.join(__dirname, 'docs-store');
 const PDF_DIR  = path.join(__dirname, 'pdf-cache');
 [DOCS_DIR, PDF_DIR].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
 
-// ── SEED DOCS ──
 function seedDocs() {
   if (fs.readdirSync(DOCS_DIR).filter(f => f.endsWith('.txt')).length > 0) return;
   fs.writeFileSync(path.join(DOCS_DIR, 'CV.txt'),
@@ -114,62 +113,88 @@ app.post('/api/agent', async (req, res) => {
 });
 
 // ── PDF GENERATION ──
-// Parses structured CV text into sections
-function parseCVSections(text) {
-  const lines = text.split('\n');
-  const sections = [];
-  let current = null;
+function parseCVText(raw) {
+  // Strip any agent commentary — only keep content from the first real CV line
+  // CV always starts with a name (no special chars, not a sentence)
+  const lines = raw.split('\n');
+  let startIdx = 0;
 
-  for (const raw of lines) {
+  // Find the first line that looks like a name or the CV header
+  // Skip lines that look like agent reasoning (contain "---", "document", "let me", etc.)
+  const agentPhrases = /let me|i have|all doc|reading|now i|here is the|tailored|summary of|key tailor|decisions|---/i;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (!l) continue;
+    if (agentPhrases.test(l)) continue;
+    // Looks like a name line: 1-4 words, no punctuation except hyphens
+    if (/^[A-ZÄÖÜ][a-zA-ZäöüÄÖÜ\s\-]{1,40}$/.test(l)) { startIdx = i; break; }
+    // Or starts with a known CV section
+    if (/^(PROFESSIONAL SUMMARY|EXPERIENCE|EDUCATION|SKILLS|PROJECTS|NAME)/i.test(l)) { startIdx = i; break; }
+  }
+
+  const cvLines = lines.slice(startIdx);
+
+  // Parse into structured sections
+  const result = { name: '', contact: '', sections: [] };
+  let currentSection = null;
+  let nameFound = false;
+
+  for (const raw of cvLines) {
     const line = raw.trimEnd();
+    const trimmed = line.trim();
 
-    // Detect name (first non-empty line if no section yet)
-    if (!sections.length && line.trim()) {
-      sections.push({ type: 'name', text: line.trim() });
+    if (!trimmed) {
+      if (currentSection) { result.sections.push(currentSection); currentSection = null; }
       continue;
     }
 
-    // Detect contact line (contains @ or phone patterns)
-    if (sections.length === 1 && line.trim() && (line.includes('@') || line.includes('+') || line.includes('linkedin') || line.includes('·') || line.includes('|'))) {
-      sections.push({ type: 'contact', text: line.trim() });
+    // Name — first non-empty line
+    if (!nameFound) {
+      result.name = trimmed.replace(/\*\*/g, '');
+      nameFound = true;
       continue;
     }
 
-    // Blank line — close current section body if needed
-    if (!line.trim()) {
-      if (current) { sections.push(current); current = null; }
+    // Contact line — contains @ or · or |
+    if (!result.contact && (trimmed.includes('@') || trimmed.includes('·') || trimmed.includes('linkedin') || trimmed.includes('|'))) {
+      result.contact = trimmed.replace(/\*\*/g, '');
       continue;
     }
 
-    // Detect section headings (ALL CAPS words, or markdown ##)
-    const isHeading = /^#{1,3}\s/.test(line) || /^[A-Z][A-Z\s&]{3,}$/.test(line.trim());
+    // Section heading — ALL CAPS or markdown ##
+    const cleanLine = trimmed.replace(/^#+\s*/, '').replace(/\*\*/g, '');
+    const isHeading = /^[A-Z][A-Z\s\/&]{3,}$/.test(cleanLine) || /^#{1,3}\s/.test(trimmed);
     if (isHeading) {
-      if (current) sections.push(current);
-      current = { type: 'section', heading: line.replace(/^#+\s*/, '').replace(/\*\*/g,'').trim(), items: [] };
+      if (currentSection) result.sections.push(currentSection);
+      currentSection = { heading: cleanLine, items: [] };
       continue;
     }
 
-    // Bold line inside section = sub-heading (company / role)
-    if (current && (/^\*\*/.test(line) || /^###/.test(line))) {
-      current.items.push({ type: 'subheading', text: line.replace(/\*\*/g,'').replace(/^#+\s*/,'').trim() });
+    if (!currentSection) currentSection = { heading: '', items: [] };
+
+    // Sub-heading (role — company | date)
+    if (/^\*\*/.test(trimmed) || (/^[A-Z]/.test(trimmed) && (trimmed.includes('—') || trimmed.includes('–') || trimmed.includes('|')) && !trimmed.startsWith('-'))) {
+      currentSection.items.push({ type: 'role', text: cleanLine });
       continue;
     }
 
     // Bullet
-    if (current && /^[-•*]\s/.test(line.trim())) {
-      current.items.push({ type: 'bullet', text: line.trim().replace(/^[-•*]\s/, '') });
+    if (/^[-•*]\s/.test(trimmed)) {
+      currentSection.items.push({ type: 'bullet', text: trimmed.replace(/^[-•*]\s*/, '') });
       continue;
     }
 
-    // Regular line
-    if (current) {
-      current.items.push({ type: 'text', text: line.trim() });
-    } else {
-      sections.push({ type: 'text', text: line.trim() });
+    // Key: value
+    const kv = trimmed.match(/^([^:]{1,28}):\s+(.+)$/);
+    if (kv) {
+      currentSection.items.push({ type: 'kv', key: kv[1].replace(/\*\*/g,''), val: kv[2] });
+      continue;
     }
+
+    currentSection.items.push({ type: 'text', text: cleanLine });
   }
-  if (current) sections.push(current);
-  return sections;
+  if (currentSection) result.sections.push(currentSection);
+  return result;
 }
 
 app.post('/api/generate-pdf', (req, res) => {
@@ -180,135 +205,142 @@ app.post('/api/generate-pdf', (req, res) => {
   const out = path.join(PDF_DIR, id + '.pdf');
 
   try {
-    const doc = new PDFDocument({
-      size: 'A4',
-      margins: { top: 52, bottom: 52, left: 58, right: 58 },
-      info: { Title: 'Curriculum Vitae', Author: 'CV Agent' }
-    });
-
+    const cv  = parseCVText(cv_text);
+    const doc = new PDFDocument({ size: 'A4', margins: { top: 0, bottom: 0, left: 0, right: 0 }, info: { Title: 'Curriculum Vitae' } });
     const stream = fs.createWriteStream(out);
     doc.pipe(stream);
 
-    // ── DESIGN TOKENS ──
-    const W        = doc.page.width - 116;   // usable width
-    const C_DARK   = '#1a1a2e';
-    const C_ACCENT = '#2563eb';
-    const C_MID    = '#4b5563';
-    const C_LIGHT  = '#9ca3af';
-    const C_LINE   = '#e5e7eb';
+    const PW = doc.page.width;   // 595
+    const PH = doc.page.height;  // 842
+    const ML = 52, MR = 52, MT = 0;
+    const CW = PW - ML - MR;     // content width
 
-    const F_HEAD   = 'Helvetica-Bold';
-    const F_BODY   = 'Helvetica';
-    const F_BOLD   = 'Helvetica-Bold';
+    // ── COLOUR PALETTE ──
+    const INK      = '#1a1a2e';
+    const ACCENT   = '#1d4ed8';
+    const MID      = '#374151';
+    const MUTED    = '#6b7280';
+    const RULE     = '#e5e7eb';
+    const HDR_BG   = '#1a1a2e';
+    const HDR_TEXT = '#ffffff';
+    const HDR_SUB  = '#93c5fd';
 
-    const sections = parseCVSections(cv_text);
-    let nameText    = '';
-    let contactText = '';
-    const bodySections = [];
+    // ── HEADER BAND ──
+    const HDR_H = 110;
+    doc.rect(0, 0, PW, HDR_H).fill(HDR_BG);
 
-    for (const s of sections) {
-      if (s.type === 'name')    nameText    = s.text;
-      else if (s.type === 'contact') contactText = s.text;
-      else bodySections.push(s);
-    }
-
-    // ── HEADER BLOCK ──
-    // Accent left bar
-    doc.rect(58, 52, 3, 64).fill(C_ACCENT);
+    // Accent side strip
+    doc.rect(0, 0, 5, HDR_H).fill(ACCENT);
 
     // Name
-    doc.font(F_HEAD).fontSize(26).fillColor(C_DARK)
-       .text(nameText || 'Curriculum Vitae', 70, 56, { width: W - 12 });
+    doc.font('Helvetica-Bold').fontSize(28).fillColor(HDR_TEXT)
+       .text(cv.name || 'Curriculum Vitae', ML, 28, { width: CW, lineGap: 2 });
 
     // Contact
-    if (contactText) {
-      doc.font(F_BODY).fontSize(9).fillColor(C_MID)
-         .text(contactText, 70, doc.y + 4, { width: W - 12 });
+    if (cv.contact) {
+      doc.font('Helvetica').fontSize(9.5).fillColor(HDR_SUB)
+         .text(cv.contact, ML, doc.y + 6, { width: CW, lineGap: 2 });
     }
 
-    // Header rule
-    const afterHeader = Math.max(doc.y + 14, 120);
-    doc.moveTo(58, afterHeader).lineTo(58 + W, afterHeader)
-       .strokeColor(C_ACCENT).lineWidth(1.5).stroke();
-    doc.y = afterHeader + 16;
+    // ── BODY ──
+    let y = HDR_H + 28;
 
-    // ── BODY SECTIONS ──
-    for (const sec of bodySections) {
-      if (sec.type === 'section') {
-        // Check page space
-        if (doc.y > doc.page.height - 120) { doc.addPage(); }
-
-        // Section heading
-        doc.font(F_HEAD).fontSize(9).fillColor(C_ACCENT)
-           .text(sec.heading.toUpperCase(), 58, doc.y, { width: W, characterSpacing: 1.2 });
-
-        doc.y += 4;
-        doc.moveTo(58, doc.y).lineTo(58 + W, doc.y)
-           .strokeColor(C_LINE).lineWidth(0.75).stroke();
-        doc.y += 8;
-
-        for (const item of sec.items) {
-          if (doc.y > doc.page.height - 80) { doc.addPage(); doc.y = 52; }
-
-          if (item.type === 'subheading') {
-            // Could be "Role — Company | Date" or "**Bold**"
-            const parts = item.text.split(/\s*[|·—–]\s*/);
-            if (parts.length >= 2) {
-              const left  = parts.slice(0, parts.length - 1).join(' — ');
-              const right = parts[parts.length - 1];
-              doc.font(F_BOLD).fontSize(10).fillColor(C_DARK).text(left, 58, doc.y, { continued: false, width: W * 0.72 });
-              const savedY = doc.y;
-              doc.font(F_BODY).fontSize(9).fillColor(C_MID)
-                 .text(right, 58 + W * 0.72, savedY - 14.5, { width: W * 0.28, align: 'right' });
-              doc.y = savedY;
-            } else {
-              doc.font(F_BOLD).fontSize(10).fillColor(C_DARK).text(item.text, 58, doc.y, { width: W });
-              doc.y += 2;
-            }
-
-          } else if (item.type === 'bullet') {
-            doc.font(F_BODY).fontSize(9.5).fillColor(C_MID)
-               .text('•', 62, doc.y, { continued: false, width: 10 });
-            const bulletY = doc.y - 13.5;
-            doc.font(F_BODY).fontSize(9.5).fillColor(C_DARK)
-               .text(item.text, 76, bulletY, { width: W - 20 });
-            doc.y += 2;
-
-          } else if (item.type === 'text') {
-            // Could be a table row (key: value)
-            const kvMatch = item.text.match(/^([^:]{1,30}):\s+(.+)$/);
-            if (kvMatch) {
-              doc.font(F_BOLD).fontSize(9.5).fillColor(C_DARK)
-                 .text(kvMatch[1] + ':', 58, doc.y, { continued: false, width: W * 0.22 });
-              const rowY = doc.y - 13.5;
-              doc.font(F_BODY).fontSize(9.5).fillColor(C_MID)
-                 .text(kvMatch[2], 58 + W * 0.24, rowY, { width: W * 0.76 });
-            } else {
-              doc.font(F_BODY).fontSize(9.5).fillColor(C_DARK)
-                 .text(item.text, 58, doc.y, { width: W });
-            }
-            doc.y += 2;
-          }
-        }
-        doc.y += 14;
-
-      } else if (sec.type === 'text') {
-        doc.font(F_BODY).fontSize(9.5).fillColor(C_DARK)
-           .text(sec.text, 58, doc.y, { width: W });
-        doc.y += 6;
+    function checkPage(needed) {
+      if (y + needed > PH - 40) {
+        doc.addPage();
+        // Repeat thin accent bar on new page
+        doc.rect(0, 0, 5, PH).fill(ACCENT);
+        y = 36;
       }
     }
 
+    for (const sec of cv.sections) {
+      if (!sec.heading && !sec.items.length) continue;
+      checkPage(40);
+
+      // Section heading
+      if (sec.heading) {
+        // Label
+        doc.font('Helvetica-Bold').fontSize(8).fillColor(ACCENT)
+           .text(sec.heading.toUpperCase(), ML, y, { width: CW, characterSpacing: 1.4 });
+        y += 13;
+        // Rule
+        doc.moveTo(ML, y).lineTo(ML + CW, y).strokeColor(RULE).lineWidth(0.75).stroke();
+        y += 10;
+      }
+
+      for (const item of sec.items) {
+        checkPage(20);
+
+        if (item.type === 'role') {
+          // Split "Title — Company, City | Date"
+          const pipeIdx = item.text.lastIndexOf('|');
+          const dashIdx = item.text.search(/[—–]/);
+          let title = item.text, company = '', date = '';
+
+          if (pipeIdx > -1) {
+            date    = item.text.slice(pipeIdx + 1).trim();
+            const left = item.text.slice(0, pipeIdx).trim();
+            const di = left.search(/[—–]/);
+            if (di > -1) { title = left.slice(0, di).trim(); company = left.slice(di + 1).trim(); }
+            else title = left;
+          } else if (dashIdx > -1) {
+            title   = item.text.slice(0, dashIdx).trim();
+            company = item.text.slice(dashIdx + 1).trim();
+          }
+
+          // Job title
+          doc.font('Helvetica-Bold').fontSize(10.5).fillColor(INK)
+             .text(title, ML, y, { width: CW * 0.68 });
+          // Date right-aligned
+          if (date) {
+            doc.font('Helvetica').fontSize(9).fillColor(MUTED)
+               .text(date, ML + CW * 0.68, y, { width: CW * 0.32, align: 'right' });
+          }
+          y = doc.y + 1;
+          // Company
+          if (company) {
+            doc.font('Helvetica').fontSize(9.5).fillColor(MID)
+               .text(company, ML, y, { width: CW });
+            y = doc.y + 4;
+          }
+
+        } else if (item.type === 'bullet') {
+          checkPage(16);
+          // Bullet dot
+          doc.circle(ML + 5, y + 4.5, 1.8).fill(ACCENT);
+          // Text
+          const bx = ML + 15;
+          doc.font('Helvetica').fontSize(9.5).fillColor(MID)
+             .text(item.text, bx, y, { width: CW - 15, lineGap: 1.5 });
+          y = doc.y + 3;
+
+        } else if (item.type === 'kv') {
+          checkPage(14);
+          doc.font('Helvetica-Bold').fontSize(9.5).fillColor(INK)
+             .text(item.key + ':', ML, y, { width: CW * 0.20, lineGap: 1 });
+          const kvY = doc.y - 13;
+          doc.font('Helvetica').fontSize(9.5).fillColor(MID)
+             .text(item.val, ML + CW * 0.22, kvY, { width: CW * 0.78, lineGap: 1 });
+          y = doc.y + 3;
+
+        } else if (item.type === 'text') {
+          checkPage(14);
+          doc.font('Helvetica').fontSize(9.5).fillColor(MID)
+             .text(item.text, ML, y, { width: CW, lineGap: 1.5 });
+          y = doc.y + 3;
+        }
+      }
+      y += 16;
+    }
+
     // ── FOOTER ──
-    const pageCount = doc.bufferedPageRange ? doc.bufferedPageRange().count : 1;
-    const footerY = doc.page.height - 36;
-    doc.font(F_BODY).fontSize(8).fillColor(C_LIGHT)
-       .text('Generated by CV Agent', 58, footerY, { width: W, align: 'center' });
+    doc.font('Helvetica').fontSize(7.5).fillColor(RULE)
+       .text('Curriculum Vitae', 0, PH - 24, { width: PW, align: 'center' });
 
     doc.end();
-
     stream.on('finish', () => res.json({ pdf_id: id }));
-    stream.on('error', e => res.status(500).json({ error: e.message }));
+    stream.on('error',  e  => res.status(500).json({ error: e.message }));
   } catch(e) {
     console.error('PDF error:', e);
     res.status(500).json({ error: e.message });
@@ -325,7 +357,5 @@ app.get('/api/pdf/:id', (req, res) => {
   res.sendFile(fp);
 });
 
-// ── CATCH-ALL ──
 app.get('*', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
-
 app.listen(PORT, () => console.log(`CV Agent running on port ${PORT}`));
