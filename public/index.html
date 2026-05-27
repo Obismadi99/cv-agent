@@ -181,6 +181,41 @@ header h1{font-size:15px;font-weight:700}
 .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
 .mini-spinner{width:11px;height:11px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ── COVER LETTER ── */
+#view-coverletter{flex-direction:column}
+.cl-top{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 1.25rem;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.cl-top label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px}
+.cl-jd-row{display:flex;gap:8px}
+.cl-job-ta{flex:1;height:90px;border:1px solid var(--border2);border-radius:var(--r-lg);padding:10px 12px;font-size:13px;line-height:1.6;resize:none;background:var(--surface2);color:var(--text);font-family:inherit}
+.cl-job-ta:focus{outline:none;border-color:var(--accent)}
+.cl-btn{padding:9px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.cl-btn:disabled{opacity:.4;cursor:not-allowed}
+.cl-main{flex:1;display:flex;overflow:hidden}
+.cl-output{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cl-output-hd{height:46px;border-bottom:1px solid var(--border);padding:0 1.25rem;background:var(--surface);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.cl-output-hd span{font-size:13px;font-weight:600;color:var(--text2)}
+.cl-hd-actions{margin-left:auto;display:none;gap:6px;align-items:center}
+.cl-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cl-pdf-frame{flex:1;border:none;display:none;background:#525659}
+.cl-pdf-frame.show{display:block}
+.cl-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3)}
+.cl-empty i{font-size:40px;opacity:.25}
+.cl-empty p{font-size:14px;text-align:center;max-width:320px;line-height:1.6}
+.cl-loading{flex:1;align-items:center;justify-content:center;gap:14px;color:var(--text2);display:none;flex-direction:column}
+.cl-loading .big-spin{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.cl-fb-bar{border-top:1px solid var(--border);padding:10px 1.25rem;background:var(--surface);flex-shrink:0;display:none}
+.cl-fb-bar.show{display:block}
+.cl-fb-bar label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
+.cl-fb-row{display:flex;gap:8px}
+.cl-fb-ta{flex:1;padding:8px 12px;font-size:13px;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--text);resize:none;height:52px;font-family:inherit;line-height:1.5}
+.cl-fb-ta:focus{outline:none;border-color:var(--accent)}
+.cl-revise-btn{padding:8px 14px;background:var(--text);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;align-self:flex-end;white-space:nowrap}
+.cl-revise-btn:disabled{opacity:.4;cursor:not-allowed}
+.missing-info{background:var(--warn-bg);border:1px solid rgba(217,119,6,.3);border-radius:var(--r-lg);padding:1.25rem;margin:1rem;font-size:13px;line-height:1.7;color:var(--text);display:none}
+.missing-info.show{display:block}
+.missing-info h3{font-size:13px;font-weight:700;color:var(--warn);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.missing-info pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;font-size:12px;margin-top:8px;white-space:pre-wrap;font-family:'Menlo',monospace}
+
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1c1c1e;color:#fff;padding:10px 18px;border-radius:var(--r-lg);font-size:13px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
 .toast.show{opacity:1}
 </style>
@@ -215,6 +250,7 @@ header h1{font-size:15px;font-weight:700}
       <button class="nav-tab active" id="tab-docs" onclick="switchTab('docs')"><i class="ti ti-files"></i> My Docs</button>
       <button class="nav-tab" id="tab-generate" onclick="switchTab('generate')"><i class="ti ti-robot"></i> Generate CV</button>
       <button class="nav-tab" id="tab-history" onclick="switchTab('history')"><i class="ti ti-history"></i> History</button>
+      <button class="nav-tab" id="tab-coverletter" onclick="switchTab('coverletter')"><i class="ti ti-mail"></i> Anschreiben</button>
     </div>
     <div class="user-area">
       <span class="user-email" id="user-email"></span>
@@ -306,6 +342,56 @@ header h1{font-size:15px;font-weight:700}
               <span class="score-lbl">match</span>
             </div>
             <div id="breakdown-items"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COVER LETTER -->
+    <div class="view" id="view-coverletter">
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="cl-top">
+          <div class="cl-jd-row">
+            <div style="flex:1;">
+              <label>Job Description</label>
+              <textarea class="cl-job-ta" id="cl-job-ta" placeholder="Paste the full job description. The agent detects the language and writes the cover letter accordingly…"></textarea>
+            </div>
+            <div class="scrape-col">
+              <label>Or scrape from URL</label>
+              <input class="url-input" id="cl-jd-url" placeholder="https://job-posting-url.com" style="width:100%">
+              <button class="scrape-btn" onclick="clScrapeURL()"><i class="ti ti-world-download"></i> Fetch job posting</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="cl-btn" id="cl-btn" onclick="startCoverLetter()"><i class="ti ti-mail"></i> Generate Anschreiben</button>
+          </div>
+        </div>
+        <div class="cl-main">
+          <div class="log-panel" id="cl-log">
+            <div class="log-empty"><i class="ti ti-activity"></i><p>Agent steps appear here</p></div>
+          </div>
+          <div class="cl-output">
+            <div class="cl-output-hd">
+              <i class="ti ti-mail" style="font-size:15px;color:#1d4ed8;"></i>
+              <span>Generated Cover Letter</span>
+              <div class="cl-hd-actions" id="cl-hd-actions">
+                <button class="hd-btn" onclick="clDownloadPDF()"><i class="ti ti-download"></i> Download PDF</button>
+                <button class="hd-btn" onclick="clSaveToHistory()" style="background:var(--accent);color:#fff;border-color:var(--accent);"><i class="ti ti-bookmark"></i> Save</button>
+              </div>
+            </div>
+            <div class="cl-body">
+              <div class="missing-info" id="cl-missing"></div>
+              <div class="cl-empty" id="cl-empty"><i class="ti ti-mail"></i><p>Your cover letter will appear here as a PDF preview</p></div>
+              <div class="cl-loading" id="cl-loading"><div class="big-spin"></div><p id="cl-loading-msg">Working…</p></div>
+              <iframe class="cl-pdf-frame" id="cl-pdf-frame" title="Cover Letter Preview"></iframe>
+            </div>
+            <div class="cl-fb-bar" id="cl-fb-bar">
+              <label><i class="ti ti-message-2"></i> Feedback — what should change?</label>
+              <div class="cl-fb-row">
+                <textarea class="cl-fb-ta" id="cl-fb-ta" placeholder="e.g. Make the opening stronger, add more about leadership…"></textarea>
+                <button class="cl-revise-btn" id="cl-revise-btn" onclick="reviseCoverLetter()"><i class="ti ti-refresh"></i> Revise</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -429,15 +515,30 @@ function showApp() {
   document.getElementById('pdf-frame').src = '';
   document.getElementById('cv-empty').style.display = 'flex';
   document.getElementById('cv-loading').style.display = 'none';
+  // Reset cover letter state
+  clLastJson=null; clLastJobDesc=''; clPdfBlob=null;
+  document.getElementById('cl-log').innerHTML='<div class="log-empty"><i class="ti ti-activity"></i><p>Agent steps appear here</p></div>';
+  document.getElementById('cl-fb-bar').classList.remove('show');
+  document.getElementById('cl-hd-actions').style.display='none';
+  document.getElementById('cl-missing').classList.remove('show');
+  document.getElementById('cl-pdf-frame').classList.remove('show');
+  document.getElementById('cl-pdf-frame').src='';
+  document.getElementById('cl-empty').style.display='flex';
+  document.getElementById('cl-loading').style.display='none';
   loadDocs();
 }
 
 // ── API HELPER ──
-async function api(method, path, body) {
-  const opts = { method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+authToken } };
+// noLogout=true for background tasks that shouldn't kick user out on 401
+async function api(method, path, body, noLogout=false) {
+  const token = authToken || localStorage.getItem('cv_agent_token') || '';
+  const opts = { method, headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token } };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(path, opts);
-  if (res.status === 401) { logout(); throw new Error('Session expired. Please sign in again.'); }
+  if (res.status === 401) {
+    if (!noLogout) { logout(); throw new Error('Session expired. Please sign in again.'); }
+    throw new Error('Auth error');
+  }
   const ct = res.headers.get('content-type') || '';
   if (ct.includes('application/json')) return res.json();
   return res;
@@ -445,7 +546,7 @@ async function api(method, path, body) {
 
 // ── TABS ──
 function switchTab(t) {
-  ['docs','generate','history'].forEach(id => {
+  ['docs','generate','coverletter','history'].forEach(id => {
     document.getElementById('tab-'+id).classList.toggle('active', id===t);
     document.getElementById('view-'+id).classList.toggle('active', id===t);
   });
@@ -541,13 +642,13 @@ async function scrapeURL() {
   btn.innerHTML = '<div class="mini-spinner"></div> Fetching…';
   btn.disabled = true;
   try {
-    const data = await api('POST', '/api/scrape', { url });
+    const data = await api('POST', '/api/scrape', { url }, true);
     if (data.error) throw new Error(data.error);
     // Let Claude clean up the scraped text
     const cleanRes = await api('POST', '/api/agent', {
       model: 'claude-sonnet-4-6', max_tokens: 1000,
       messages: [{ role: 'user', content: `Extract just the job description from this scraped webpage text. Remove navigation, footers, ads, and boilerplate. Return only the actual job posting content:\n\n${data.text}` }]
-    });
+    }, true);
     const cleaned = cleanRes.content?.filter(b=>b.type==='text').map(b=>b.text).join('').trim() || data.text;
     document.getElementById('job-ta').value = cleaned;
     document.getElementById('jd-url').value = '';
@@ -646,7 +747,7 @@ async function startGenerate() {
 // ── ReAct LOOP ──
 async function runReActLoop(messages) {
   for (let i = 0; i < 14; i++) {
-    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:4000, system:SYS, tools:TOOLS, messages });
+    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:4000, system:SYS, tools:TOOLS, messages }, true);
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
 
     messages.push({ role:'assistant', content:data.content });
@@ -674,10 +775,10 @@ async function runReActLoop(messages) {
           const name = blk.input.document_name;
           log('tool','read_document',`Reading "${name}"…`);
           // Find doc by name
-          const docs = await api('GET', '/api/docs');
+          const docs = await api('GET', '/api/docs', null, true);
           const found = docs.find(d => d.name.toLowerCase() === name.toLowerCase()) || docs.find(d => d.name.toLowerCase().includes(name.toLowerCase()));
           if (found) {
-            const doc = await api('GET', '/api/docs/' + found.id);
+            const doc = await api('GET', '/api/docs/' + found.id, null, true);
             result = doc.content || '';
             log('result',`"${found.name}" loaded`, result.slice(0,150)+'…');
           } else { result = `Document "${name}" not found.`; log('error','Not found', result); }
@@ -717,9 +818,9 @@ async function reviseCV() {
 
   let docsContext = '';
   try {
-    const docs = await api('GET', '/api/docs');
+    const docs = await api('GET', '/api/docs', null, true);
     for (const d of docs) {
-      const doc = await api('GET', '/api/docs/' + d.id);
+      const doc = await api('GET', '/api/docs/' + d.id, null, true);
       docsContext += `\n\n=== ${d.name} ===\n${doc.content}`;
     }
   } catch(e) {}
@@ -728,7 +829,7 @@ async function reviseCV() {
   const revMsg = `CURRENT CV JSON:\n${JSON.stringify(lastCVJson,null,2)}\n\nSOURCE DOCUMENTS:\n${docsContext}\n\nJOB DESCRIPTION:\n${lastJobDesc}\n\nCHANGE REQUEST: ${feedback}\n\nReturn the complete updated CV as JSON only.`;
 
   try {
-    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:4000, system:revSys, messages:[{role:'user',content:revMsg}] });
+    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:4000, system:revSys, messages:[{role:'user',content:revMsg}] }, true);
     if (data.error) throw new Error(data.error.message);
     const txt    = data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
     const cvJson = extractJSON(txt);
@@ -747,12 +848,14 @@ async function reviseCV() {
 async function generatePDF(cvJson, style) {
   log('tool','generate_pdf',`Rendering ${style} PDF…`);
   try {
+    const token2 = authToken || localStorage.getItem('cv_agent_token') || '';
     const res = await fetch('/api/generate-pdf', {
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+authToken},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token2},
       body:JSON.stringify({ cv_json:cvJson, style })
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'PDF failed'); }
+    if (res.status === 401) throw new Error('Auth error generating PDF');
+    if (!res.ok) { const e = await res.json().catch(()=>({error:'PDF failed'})); throw new Error(e.error || 'PDF failed'); }
     const blob = await res.blob();
     currentPdfBlob = blob;
     const url = URL.createObjectURL(blob);
@@ -792,7 +895,7 @@ CV: ${JSON.stringify(cvJson)}
 Job Description: ${jobDesc}
 
 Return ONLY the JSON.`;
-    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:600, messages:[{role:'user',content:prompt}] });
+    const data = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:600, messages:[{role:'user',content:prompt}] }, true);
     const txt  = data.content?.filter(b=>b.type==='text').map(b=>b.text).join('').trim() || '';
     const json = extractJSON(txt);
     if (!json) return;
@@ -832,7 +935,7 @@ async function saveToCVHistory() {
     const matchEl = document.getElementById('score-num');
     const matchScore = matchEl.textContent !== '—' ? parseInt(matchEl.textContent) : null;
     const breakdown = document.getElementById('breakdown-items').innerHTML ? lastMatchBreakdown : null;
-    await api('POST', '/api/history', { cv_json:lastCVJson, job_description:lastJobDesc, style:lastStyle, match_score:matchScore });
+    await api('POST', '/api/history', { cv_json:lastCVJson, job_description:lastJobDesc, style:lastStyle, match_score:matchScore }, true);
     toast('CV saved to history ✓');
   } catch(e) { toast('Save error: ' + e.message); }
 }
@@ -851,11 +954,12 @@ async function loadHistory() {
     items.forEach(item => {
       const date = new Date(item.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
       const scoreColor = item.match_score >= 75 ? '#16a34a' : item.match_score >= 55 ? '#d97706' : '#dc2626';
+      const isCL = item.style === 'cover_letter';
       const card = document.createElement('div');
       card.className = 'hist-card';
       card.innerHTML = `
         <div class="hc-top">
-          <div class="hc-icon"><i class="ti ti-file-cv"></i></div>
+          <div class="hc-icon"><i class="ti ${isCL ? 'ti-mail' : 'ti-file-cv'}"></i></div>
           <div style="flex:1;min-width:0;">
             <div class="hc-title">${esc(item.job_title || 'Untitled Role')}</div>
             <div class="hc-company">${esc(item.company || '')}</div>
@@ -876,19 +980,43 @@ async function loadHistory() {
 async function loadHistoryItem(id) {
   try {
     const item = await api('GET', '/api/history/' + id);
-    if (item.error) throw new Error(item.error);
+    if (!item || item.error) throw new Error(item?.error || 'Failed to load');
     lastCVJson  = item.cv_json;
     lastJobDesc = item.job_description || '';
     lastStyle   = item.style || 'modern';
     document.getElementById('style-select').value = lastStyle;
     if (lastJobDesc) document.getElementById('job-ta').value = lastJobDesc;
+    if (item.style === 'cover_letter') {
+      clLastJson = item.cv_json;
+      clLastJobDesc = item.job_description || '';
+      switchTab('coverletter');
+      document.getElementById('cl-job-ta').value = clLastJobDesc;
+      document.getElementById('cl-log').innerHTML = '';
+      clShowState('loading', 'Loading saved cover letter…');
+      try {
+        await clGeneratePDF(item.cv_json);
+        toast('Loaded from history ✓');
+      } catch(e) {
+        clShowState('empty');
+        toast('PDF error: ' + e.message);
+      }
+      return;
+    }
     switchTab('generate');
     showState('loading','Loading saved CV…');
     document.getElementById('log-panel').innerHTML = '';
-    await generatePDF(item.cv_json, item.style || 'modern');
-    if (lastJobDesc) await computeMatchScore(item.cv_json, lastJobDesc);
-    toast('Loaded from history');
-  } catch(e) { toast('Error: ' + e.message); }
+    try {
+      await generatePDF(item.cv_json, item.style || 'modern');
+      toast('Loaded from history ✓');
+    } catch(pdfErr) {
+      showState('empty');
+      toast('PDF error: ' + pdfErr.message);
+      return;
+    }
+    computeMatchScore(item.cv_json, lastJobDesc).catch(()=>{});
+  } catch(e) {
+    if (!e.message.includes('Session expired')) toast('Error: ' + e.message);
+  }
 }
 
 async function deleteHistory(e, id) {
@@ -930,6 +1058,213 @@ function log(type, label, text) {
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+
+// ── COVER LETTER ──
+let clLastJson = null;
+let clLastJobDesc = '';
+let clPdfBlob = null;
+
+const CL_SYS = `You are an expert cover letter writer. You write professional, formal cover letters (Anschreiben) tailored to specific job descriptions.
+
+PROCESS (ReAct):
+1. Call list_documents to see available docs
+2. Call read_document for each document
+3. Analyse the job description — detect language, required skills, company tone
+4. Check if you have: full name, contact info, work experience. If critical info is missing, return missing_info JSON.
+5. Write the cover letter in the formal standard for the detected language:
+   - German: DIN 5008 (sender block top-right, recipient top-left, date, subject, formal salutation, 3-4 paragraphs, formal closing)
+   - English: Formal business letter
+   - Other: Equivalent formal national standard
+6. Output ONLY JSON
+
+OUTPUT (sufficient info):
+{
+  "language": "German",
+  "sender": { "name": "Full Name", "address": "Street, City", "email": "email", "phone": "phone" },
+  "recipient": { "company": "Company", "department": "Dept (optional)", "address": "Address (optional)" },
+  "date": "Berlin, 27. Mai 2026",
+  "subject": "Bewerbung als Backend Engineer",
+  "salutation": "Sehr geehrte Damen und Herren,",
+  "paragraphs": ["Opening paragraph", "Main experience paragraph", "Skills paragraph", "Closing paragraph"],
+  "closing": "Mit freundlichen Grüßen,",
+  "name": "Full Name"
+}
+
+OUTPUT (missing info):
+{
+  "missing_info": true,
+  "what_is_missing": "What info is needed",
+  "examples": "Example of what to add:\n\nPersonal Info doc:\nName: Max Mustermann\nAddress: Musterstraße 1, 10115 Berlin\nEmail: max@example.com\nPhone: +49 176 1234567"
+}
+
+RULES:
+- Detect language from job description, write entire letter in that language
+- Follow formal letter standard precisely
+- Only use info from user docs — never invent facts
+- Keep paragraphs 3-5 sentences, professional and focused
+- Return ONLY the JSON object, nothing else`;
+
+async function clScrapeURL() {
+  const url = document.getElementById('cl-jd-url').value.trim();
+  if (!url) { toast('Please enter a URL first'); return; }
+  const btn = document.querySelector('#view-coverletter .scrape-btn');
+  btn.innerHTML = '<div class="mini-spinner"></div> Fetching…'; btn.disabled = true;
+  try {
+    const data = await api('POST', '/api/scrape', { url }, true);
+    if (data.error) throw new Error(data.error);
+    const cleanRes = await api('POST', '/api/agent', { model:'claude-sonnet-4-6', max_tokens:800, messages:[{role:'user',content:'Extract just the job description from this scraped webpage. Remove nav, footers, ads:\n\n'+data.text}] }, true);
+    const cleaned = cleanRes.content?.filter(b=>b.type==='text').map(b=>b.text).join('').trim() || data.text;
+    document.getElementById('cl-job-ta').value = cleaned;
+    document.getElementById('cl-jd-url').value = '';
+    toast('Job description fetched!');
+  } catch(e) { toast('Scrape error: '+e.message); }
+  btn.innerHTML = '<i class="ti ti-world-download"></i> Fetch job posting'; btn.disabled = false;
+}
+
+async function startCoverLetter() {
+  const jd = document.getElementById('cl-job-ta').value.trim();
+  if (!jd) { toast('Please paste a job description first'); return; }
+  clLastJobDesc = jd;
+  setBtn('cl-btn', true, '<div class="spinner"></div> Working…');
+  document.getElementById('cl-log').innerHTML = '';
+  document.getElementById('cl-fb-bar').classList.remove('show');
+  document.getElementById('cl-hd-actions').style.display = 'none';
+  document.getElementById('cl-missing').classList.remove('show');
+  clShowState('loading','Reading your documents…');
+  const messages = [{role:'user',content:'Write a tailored cover letter for this job:\n\n'+jd+'\n\nRead all my documents first, then return the cover letter as JSON.'}];
+  try { await clRunReActLoop(messages); }
+  catch(e) { clLog('error','Error',e.message); clShowState('empty'); }
+  setBtn('cl-btn', false, '<i class="ti ti-mail"></i> Generate Anschreiben');
+}
+
+async function clRunReActLoop(messages) {
+  for (let i=0; i<14; i++) {
+    const data = await api('POST','/api/agent',{model:'claude-sonnet-4-6',max_tokens:4000,system:CL_SYS,tools:TOOLS,messages}, true);
+    if (data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+    messages.push({role:'assistant',content:data.content});
+    const toolResults=[]; let hasTools=false;
+    for (const blk of data.content) {
+      if (blk.type==='text'&&blk.text.trim()) {
+        if (data.stop_reason==='end_turn'&&!data.content.some(b=>b.type==='tool_use')) {
+          const json=extractJSON(blk.text);
+          if (!json) throw new Error('Could not parse cover letter JSON');
+          if (json.missing_info) { showMissingInfo(json); clShowState('empty'); return; }
+          await clGeneratePDF(json); return;
+        } else { clLog('agent','Reasoning',blk.text.slice(0,160)+(blk.text.length>160?'…':'')); }
+      }
+      if (blk.type==='tool_use') {
+        hasTools=true; let result='';
+        if (blk.name==='list_documents') {
+          clLog('tool','list_documents','Fetching document list…');
+          const docs=await api('GET','/api/docs',null,true);
+          result=docs.length?docs.length+' document(s):\n'+docs.map(d=>'- '+d.name).join('\n'):'No documents found.';
+          clLog('result','Documents',result);
+        } else if (blk.name==='read_document') {
+          const name=blk.input.document_name;
+          clLog('tool','read_document','Reading "'+name+'"…');
+          const docs=await api('GET','/api/docs',null,true);
+          const found=docs.find(d=>d.name.toLowerCase()===name.toLowerCase())||docs.find(d=>d.name.toLowerCase().includes(name.toLowerCase()));
+          if (found) { const doc=await api('GET','/api/docs/'+found.id,null,true); result=doc.content||''; clLog('result','"'+found.name+'" loaded',result.slice(0,150)+'…'); }
+          else { result='Document "'+name+'" not found.'; clLog('error','Not found',result); }
+        }
+        toolResults.push({type:'tool_result',tool_use_id:blk.id,content:result});
+      }
+    }
+    if (hasTools) { messages.push({role:'user',content:toolResults}); clShowState('loading','Writing cover letter…'); }
+    else {
+      const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+      const json=extractJSON(txt);
+      if (!json) throw new Error('No valid JSON in response');
+      if (json.missing_info) { showMissingInfo(json); clShowState('empty'); return; }
+      await clGeneratePDF(json); return;
+    }
+  }
+}
+
+function showMissingInfo(json) {
+  const el=document.getElementById('cl-missing');
+  el.innerHTML='<h3><i class="ti ti-alert-triangle"></i> More information needed</h3><p>'+esc(json.what_is_missing)+'</p>'+(json.examples?'<p style="margin-top:8px;font-weight:600;">Add something like this to your docs:</p><pre>'+esc(json.examples)+'</pre>':'');
+  el.classList.add('show');
+}
+
+async function clGeneratePDF(json) {
+  clLastJson=json; clShowState('loading','Generating PDF…');
+  clLog('tool','generate_pdf','Rendering cover letter PDF…');
+  try {
+    const token2=authToken||localStorage.getItem('cv_agent_token')||'';
+    const res=await fetch('/api/generate-cover-letter-pdf',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token2},body:JSON.stringify({cl_json:json})});
+    if (res.status===401) throw new Error('Auth error');
+    if (!res.ok) { const e=await res.json().catch(()=>({error:'PDF failed'})); throw new Error(e.error||'PDF failed'); }
+    const blob=await res.blob(); clPdfBlob=blob;
+    document.getElementById('cl-pdf-frame').src=URL.createObjectURL(blob);
+    clShowState('pdf');
+    document.getElementById('cl-hd-actions').style.display='flex';
+    document.getElementById('cl-fb-bar').classList.add('show');
+    clLog('result','Done','Cover letter ready.');
+  } catch(e) { clLog('error','PDF Error',e.message); clShowState('empty'); throw e; }
+}
+
+async function reviseCoverLetter() {
+  const feedback=document.getElementById('cl-fb-ta').value.trim();
+  if (!feedback||!clLastJson) return;
+  setBtn('cl-revise-btn',true,'<div class="spinner"></div> Revising…');
+  clShowState('loading','Applying feedback…');
+  clLog('agent','Revision','Feedback: "'+feedback+'"');
+  let docsContext='';
+  try {
+    const docs=await api('GET','/api/docs',null,true);
+    for (const d of docs) { const doc=await api('GET','/api/docs/'+d.id,null,true); docsContext+='\n\n=== '+d.name+' ===\n'+doc.content; }
+  } catch(e) {}
+  const revSys='You are a cover letter editor. Apply the requested change and return the complete updated cover letter as JSON only. No markdown, no backticks, no explanation.';
+  const revMsg='CURRENT COVER LETTER JSON:\n'+JSON.stringify(clLastJson,null,2)+'\n\nSOURCE DOCUMENTS:\n'+docsContext+'\n\nJOB DESCRIPTION:\n'+clLastJobDesc+'\n\nCHANGE REQUEST: '+feedback+'\n\nReturn the complete updated cover letter as JSON only.';
+  try {
+    const data=await api('POST','/api/agent',{model:'claude-sonnet-4-6',max_tokens:3000,system:revSys,messages:[{role:'user',content:revMsg}]},true);
+    if (data.error) throw new Error(data.error.message);
+    const txt=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    const json=extractJSON(txt);
+    if (!json) throw new Error('Could not parse revised JSON');
+    await clGeneratePDF(json);
+    document.getElementById('cl-fb-ta').value='';
+    clLog('result','Revised','Cover letter updated.');
+  } catch(e) { clLog('error','Error',e.message); clShowState('empty'); }
+  setBtn('cl-revise-btn',false,'<i class="ti ti-refresh"></i> Revise');
+}
+
+async function clSaveToHistory() {
+  if (!clLastJson) return;
+  try {
+    await api('POST', '/api/history', {
+      cv_json: clLastJson,
+      job_description: clLastJobDesc,
+      style: 'cover_letter',
+      job_title: clLastJson.subject || 'Cover Letter',
+      company: clLastJson.recipient?.company || ''
+    }, true);
+    toast('Cover letter saved to history ✓');
+  } catch(e) { toast('Save error: ' + e.message); }
+}
+
+function clDownloadPDF() {
+  if (!clPdfBlob) return;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(clPdfBlob); a.download='Anschreiben.pdf'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+function clShowState(state,msg) {
+  document.getElementById('cl-empty').style.display=state==='empty'?'flex':'none';
+  document.getElementById('cl-loading').style.display=state==='loading'?'flex':'none';
+  document.getElementById('cl-pdf-frame').classList.toggle('show',state==='pdf');
+  if (msg) document.getElementById('cl-loading-msg').textContent=msg;
+}
+
+function clLog(type,label,text) {
+  const panel=document.getElementById('cl-log');
+  panel.querySelector('.log-empty')?.remove();
+  const icons={tool:'ti-tool',agent:'ti-robot',result:'ti-check',error:'ti-alert-circle'};
+  const div=document.createElement('div'); div.className='log-step';
+  div.innerHTML='<div class="log-ico '+type+'"><i class="ti '+(icons[type]||'ti-circle')+'"></i></div><div class="log-body"><div class="llbl">'+esc(label)+'</div><div class="lmsg">'+esc(text)+'</div></div>';
+  panel.appendChild(div); div.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 
 // ── INIT ──
 (async () => {

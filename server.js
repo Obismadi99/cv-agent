@@ -199,8 +199,8 @@ app.get('/api/history/:id', requireAuth, async (req, res) => {
 app.post('/api/history', requireAuth, async (req, res) => {
   try {
     const { cv_json, job_description, style, match_score, match_breakdown } = req.body;
-    const jobTitle = cv_json?.experience?.[0]?.title || '';
-    const company  = cv_json?.experience?.[0]?.company || '';
+    const jobTitle = req.body.job_title || cv_json?.experience?.[0]?.title || '';
+    const company  = req.body.company  || cv_json?.experience?.[0]?.company || '';
     const { data, error } = await supabaseAdmin
       .from('cv_history')
       .insert({
@@ -489,6 +489,90 @@ app.post('/api/generate-pdf', requireAuth, async (req, res) => {
     console.error('PDF error:', e);
     res.status(500).json({ error: e.message });
   }
+});
+
+
+// ── COVER LETTER PDF ──
+function buildCoverLetterPDF(cl, outputPath) {
+  return new Promise((resolve, reject) => {
+    const fs2 = require('fs');
+    const doc = new PDFDocument({ size:'A4', margins:{top:0,bottom:0,left:0,right:0}, info:{Title:'Cover Letter'} });
+    const stream = fs2.createWriteStream(outputPath);
+    doc.pipe(stream);
+    const PW=doc.page.width, PH=doc.page.height;
+    const ML=62, MR=62, CW=PW-ML-MR;
+    const FB='Helvetica-Bold', FR='Helvetica';
+    const INK='#111827', MID='#374151', MUTED='#6b7280', LIGHT='#9ca3af', ACCENT='#1d4ed8';
+    let y=52;
+
+    // Sender block — top right
+    const sender=cl.sender||{};
+    const senderLines=[sender.name,sender.address,sender.email,sender.phone].filter(Boolean);
+    const senderW=200, senderX=PW-MR-senderW;
+    senderLines.forEach((line,i)=>{
+      doc.font(i===0?FB:FR).fontSize(9.5).fillColor(i===0?INK:MUTED).text(line,senderX,y,{width:senderW,align:'right'});
+      y=doc.y+1;
+    });
+    y=Math.max(y,130);
+
+    // Recipient block — top left
+    const recipient=cl.recipient||{};
+    let ry=130;
+    [recipient.company,recipient.department,recipient.address].filter(Boolean).forEach((line,i)=>{
+      doc.font(i===0?FB:FR).fontSize(9.5).fillColor(i===0?INK:MID).text(line,ML,ry,{width:CW*0.55});
+      ry=doc.y+1;
+    });
+
+    // Date — right aligned
+    y=Math.max(ry+20,200);
+    doc.font(FR).fontSize(9.5).fillColor(MUTED).text(cl.date||'',ML,y,{width:CW,align:'right'});
+    y=doc.y+20;
+
+    // Subject line
+    doc.font(FB).fontSize(11).fillColor(INK).text(cl.subject||'',ML,y,{width:CW});
+    y=doc.y+6;
+    doc.moveTo(ML,y).lineTo(ML+CW,y).strokeColor(ACCENT).lineWidth(1.5).stroke();
+    y+=20;
+
+    // Salutation
+    doc.font(FR).fontSize(10).fillColor(INK).text(cl.salutation||'Dear Sir or Madam,',ML,y,{width:CW});
+    y=doc.y+14;
+
+    // Paragraphs
+    (cl.paragraphs||[]).forEach((para,i)=>{
+      if (y+40>PH-100) { doc.addPage(); y=52; }
+      doc.font(FR).fontSize(10).fillColor(MID).text(para,ML,y,{width:CW,lineGap:2.5,align:'justify'});
+      y=doc.y+(i<(cl.paragraphs.length-1)?10:14);
+    });
+
+    // Closing + signature space
+    if (y+55>PH) { doc.addPage(); y=52; }
+    doc.font(FR).fontSize(10).fillColor(INK).text(cl.closing||'Yours sincerely,',ML,y,{width:CW});
+    y=doc.y+18;
+    doc.font(FB).fontSize(10).fillColor(INK).text(cl.name||'',ML,y,{width:CW});
+
+    // Footer
+    
+
+    doc.end();
+    stream.on('finish',resolve);
+    stream.on('error',reject);
+  });
+}
+
+app.post('/api/generate-cover-letter-pdf', requireAuth, async (req, res) => {
+  const { cl_json } = req.body;
+  if (!cl_json) return res.status(400).json({ error: 'cl_json required' });
+  const fs2=require('fs'), os=require('os');
+  const id=crypto.randomBytes(8).toString('hex');
+  const out=path.join(os.tmpdir(),id+'.pdf');
+  try {
+    await buildCoverLetterPDF(cl_json, out);
+    const pdfBytes=fs2.readFileSync(out); fs2.unlinkSync(out);
+    res.setHeader('Content-Type','application/pdf');
+    res.setHeader('Content-Disposition','inline; filename="cover-letter.pdf"');
+    res.send(pdfBytes);
+  } catch(e) { console.error('CL PDF error:',e); res.status(500).json({error:e.message}); }
 });
 
 app.get('*', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
